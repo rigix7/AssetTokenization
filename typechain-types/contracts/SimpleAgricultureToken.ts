@@ -39,11 +39,17 @@ export interface SimpleAgricultureTokenInterface extends Interface {
       | "burnExpiredTokens"
       | "centralAuthority"
       | "decimals"
+      | "defaultExpiryPeriod"
+      | "getHolderInfo"
       | "getRoleAdmin"
+      | "getTimeUntilExpiry"
       | "getTokenInfo"
       | "grantRole"
       | "hasRole"
+      | "isExpired"
       | "mint"
+      | "mintTimestamp"
+      | "mintWithDefaultExpiry"
       | "name"
       | "pause"
       | "paused"
@@ -55,6 +61,7 @@ export interface SimpleAgricultureTokenInterface extends Interface {
       | "transfer"
       | "transferFrom"
       | "unpause"
+      | "updateDefaultExpiryPeriod"
   ): FunctionFragment;
 
   getEvent(
@@ -62,6 +69,7 @@ export interface SimpleAgricultureTokenInterface extends Interface {
       | "Approval"
       | "AssetExpired"
       | "AssetVerified"
+      | "ExpiryPeriodUpdated"
       | "Paused"
       | "RoleAdminChanged"
       | "RoleGranted"
@@ -117,8 +125,20 @@ export interface SimpleAgricultureTokenInterface extends Interface {
   ): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "defaultExpiryPeriod",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getHolderInfo",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getTimeUntilExpiry",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getTokenInfo",
@@ -133,8 +153,20 @@ export interface SimpleAgricultureTokenInterface extends Interface {
     values: [BytesLike, AddressLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "isExpired",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "mint",
     values: [AddressLike, BigNumberish, BigNumberish, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintTimestamp",
+    values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintWithDefaultExpiry",
+    values: [AddressLike, BigNumberish, string]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "pause", values?: undefined): string;
@@ -165,6 +197,10 @@ export interface SimpleAgricultureTokenInterface extends Interface {
     values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "unpause", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "updateDefaultExpiryPeriod",
+    values: [BigNumberish]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "DEFAULT_ADMIN_ROLE",
@@ -204,7 +240,19 @@ export interface SimpleAgricultureTokenInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "defaultExpiryPeriod",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getHolderInfo",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getRoleAdmin",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getTimeUntilExpiry",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -213,7 +261,16 @@ export interface SimpleAgricultureTokenInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isExpired", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "mintTimestamp",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "mintWithDefaultExpiry",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "pause", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "paused", data: BytesLike): Result;
@@ -237,6 +294,10 @@ export interface SimpleAgricultureTokenInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "unpause", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "updateDefaultExpiryPeriod",
+    data: BytesLike
+  ): Result;
 }
 
 export namespace ApprovalEvent {
@@ -274,13 +335,33 @@ export namespace AssetVerifiedEvent {
   export type InputTuple = [
     holder: AddressLike,
     amount: BigNumberish,
-    location: string
+    location: string,
+    expiryDate: BigNumberish
   ];
-  export type OutputTuple = [holder: string, amount: bigint, location: string];
+  export type OutputTuple = [
+    holder: string,
+    amount: bigint,
+    location: string,
+    expiryDate: bigint
+  ];
   export interface OutputObject {
     holder: string;
     amount: bigint;
     location: string;
+    expiryDate: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace ExpiryPeriodUpdatedEvent {
+  export type InputTuple = [oldPeriod: BigNumberish, newPeriod: BigNumberish];
+  export type OutputTuple = [oldPeriod: bigint, newPeriod: bigint];
+  export interface OutputObject {
+    oldPeriod: bigint;
+    newPeriod: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -473,17 +554,40 @@ export interface SimpleAgricultureToken extends BaseContract {
 
   decimals: TypedContractMethod<[], [bigint], "view">;
 
+  defaultExpiryPeriod: TypedContractMethod<[], [bigint], "view">;
+
+  getHolderInfo: TypedContractMethod<
+    [holder: AddressLike],
+    [
+      [bigint, boolean, bigint, bigint, boolean] & {
+        balance: bigint;
+        verified: boolean;
+        expiryDate: bigint;
+        mintDate: bigint;
+        expired: boolean;
+      }
+    ],
+    "view"
+  >;
+
   getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
+
+  getTimeUntilExpiry: TypedContractMethod<
+    [holder: AddressLike],
+    [bigint],
+    "view"
+  >;
 
   getTokenInfo: TypedContractMethod<
     [],
     [
-      [string, string, string, bigint, string] & {
+      [string, string, string, bigint, string, bigint] & {
         tokenName: string;
         tokenSymbol: string;
         asset: string;
         totalSupply: bigint;
         authority: string;
+        defaultExpiry: bigint;
       }
     ],
     "view"
@@ -501,6 +605,8 @@ export interface SimpleAgricultureToken extends BaseContract {
     "view"
   >;
 
+  isExpired: TypedContractMethod<[holder: AddressLike], [boolean], "view">;
+
   mint: TypedContractMethod<
     [
       to: AddressLike,
@@ -508,6 +614,14 @@ export interface SimpleAgricultureToken extends BaseContract {
       expiryTimestamp: BigNumberish,
       location: string
     ],
+    [void],
+    "nonpayable"
+  >;
+
+  mintTimestamp: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+
+  mintWithDefaultExpiry: TypedContractMethod<
+    [to: AddressLike, amount: BigNumberish, location: string],
     [void],
     "nonpayable"
   >;
@@ -553,6 +667,12 @@ export interface SimpleAgricultureToken extends BaseContract {
   >;
 
   unpause: TypedContractMethod<[], [void], "nonpayable">;
+
+  updateDefaultExpiryPeriod: TypedContractMethod<
+    [newExpiryPeriod: BigNumberish],
+    [void],
+    "nonpayable"
+  >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
@@ -606,19 +726,41 @@ export interface SimpleAgricultureToken extends BaseContract {
     nameOrSignature: "decimals"
   ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
+    nameOrSignature: "defaultExpiryPeriod"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getHolderInfo"
+  ): TypedContractMethod<
+    [holder: AddressLike],
+    [
+      [bigint, boolean, bigint, bigint, boolean] & {
+        balance: bigint;
+        verified: boolean;
+        expiryDate: bigint;
+        mintDate: bigint;
+        expired: boolean;
+      }
+    ],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "getRoleAdmin"
   ): TypedContractMethod<[role: BytesLike], [string], "view">;
+  getFunction(
+    nameOrSignature: "getTimeUntilExpiry"
+  ): TypedContractMethod<[holder: AddressLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "getTokenInfo"
   ): TypedContractMethod<
     [],
     [
-      [string, string, string, bigint, string] & {
+      [string, string, string, bigint, string, bigint] & {
         tokenName: string;
         tokenSymbol: string;
         asset: string;
         totalSupply: bigint;
         authority: string;
+        defaultExpiry: bigint;
       }
     ],
     "view"
@@ -638,6 +780,9 @@ export interface SimpleAgricultureToken extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "isExpired"
+  ): TypedContractMethod<[holder: AddressLike], [boolean], "view">;
+  getFunction(
     nameOrSignature: "mint"
   ): TypedContractMethod<
     [
@@ -646,6 +791,16 @@ export interface SimpleAgricultureToken extends BaseContract {
       expiryTimestamp: BigNumberish,
       location: string
     ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "mintTimestamp"
+  ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "mintWithDefaultExpiry"
+  ): TypedContractMethod<
+    [to: AddressLike, amount: BigNumberish, location: string],
     [void],
     "nonpayable"
   >;
@@ -698,6 +853,9 @@ export interface SimpleAgricultureToken extends BaseContract {
   getFunction(
     nameOrSignature: "unpause"
   ): TypedContractMethod<[], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "updateDefaultExpiryPeriod"
+  ): TypedContractMethod<[newExpiryPeriod: BigNumberish], [void], "nonpayable">;
 
   getEvent(
     key: "Approval"
@@ -719,6 +877,13 @@ export interface SimpleAgricultureToken extends BaseContract {
     AssetVerifiedEvent.InputTuple,
     AssetVerifiedEvent.OutputTuple,
     AssetVerifiedEvent.OutputObject
+  >;
+  getEvent(
+    key: "ExpiryPeriodUpdated"
+  ): TypedContractEvent<
+    ExpiryPeriodUpdatedEvent.InputTuple,
+    ExpiryPeriodUpdatedEvent.OutputTuple,
+    ExpiryPeriodUpdatedEvent.OutputObject
   >;
   getEvent(
     key: "Paused"
@@ -786,7 +951,7 @@ export interface SimpleAgricultureToken extends BaseContract {
       AssetExpiredEvent.OutputObject
     >;
 
-    "AssetVerified(address,uint256,string)": TypedContractEvent<
+    "AssetVerified(address,uint256,string,uint256)": TypedContractEvent<
       AssetVerifiedEvent.InputTuple,
       AssetVerifiedEvent.OutputTuple,
       AssetVerifiedEvent.OutputObject
@@ -795,6 +960,17 @@ export interface SimpleAgricultureToken extends BaseContract {
       AssetVerifiedEvent.InputTuple,
       AssetVerifiedEvent.OutputTuple,
       AssetVerifiedEvent.OutputObject
+    >;
+
+    "ExpiryPeriodUpdated(uint256,uint256)": TypedContractEvent<
+      ExpiryPeriodUpdatedEvent.InputTuple,
+      ExpiryPeriodUpdatedEvent.OutputTuple,
+      ExpiryPeriodUpdatedEvent.OutputObject
+    >;
+    ExpiryPeriodUpdated: TypedContractEvent<
+      ExpiryPeriodUpdatedEvent.InputTuple,
+      ExpiryPeriodUpdatedEvent.OutputTuple,
+      ExpiryPeriodUpdatedEvent.OutputObject
     >;
 
     "Paused(address)": TypedContractEvent<

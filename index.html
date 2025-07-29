@@ -80,6 +80,11 @@
                                     <h5 class="card-title">tCHICKEN</h5>
                                     <h3>1,000</h3>
                                     <small>Total Minted</small>
+                                    <div class="mt-2">
+                                        <span class="badge bg-light text-dark">
+                                            <i class="fas fa-clock me-1"></i>30 days expiry
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="ms-3">
                                     <i class="fas fa-drumstick-bite fa-2x"></i>
@@ -96,6 +101,11 @@
                                     <h5 class="card-title">tEGG</h5>
                                     <h3>5,000</h3>
                                     <small>Total Minted</small>
+                                    <div class="mt-2">
+                                        <span class="badge bg-light text-dark">
+                                            <i class="fas fa-clock me-1"></i>14 days expiry
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="ms-3">
                                     <i class="fas fa-egg fa-2x"></i>
@@ -111,7 +121,12 @@
                                 <div class="flex-grow-1">
                                     <h5 class="card-title">tIDR</h5>
                                     <h3>500M</h3>
-                                    <small>In Circulation</small>
+                                    <small>Budget Allocation</small>
+                                    <div class="mt-2">
+                                        <span class="badge bg-light text-dark">
+                                            <i class="fas fa-clock me-1"></i>90 days budget
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="ms-3">
                                     <i class="fas fa-money-bill-wave fa-2x"></i>
@@ -170,6 +185,11 @@
                                 <div class="mb-3">
                                     <label for="assetLocation" class="form-label">Asset Location</label>
                                     <input type="text" class="form-control" id="assetLocation" placeholder="Farm A, Coop 1" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="customExpiryDays" class="form-label">Custom Expiry (Days)</label>
+                                    <input type="number" class="form-control" id="customExpiryDays" placeholder="Leave empty for default expiry">
+                                    <div class="form-text">Default: tCHICKEN=30 days, tEGG=14 days, tIDR=90 days</div>
                                 </div>
                                 <button type="submit" class="btn btn-primary">
                                     <i class="fas fa-plus me-2"></i>Mint Tokens
@@ -278,6 +298,52 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- Asset Expiry Information Section -->
+        <section class="mb-5">
+            <h2><i class="fas fa-clock me-2"></i>Asset Expiry Settings</h2>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <i class="fas fa-drumstick-bite fa-3x text-success mb-3"></i>
+                            <h5>tCHICKEN Tokens</h5>
+                            <p class="mb-2"><strong>Default Expiry:</strong> 30 days</p>
+                            <p class="text-muted small">Chickens have a 30-day shelf life for optimal freshness and quality</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <i class="fas fa-egg fa-3x text-warning mb-3"></i>
+                            <h5>tEGG Tokens</h5>
+                            <p class="mb-2"><strong>Default Expiry:</strong> 14 days</p>
+                            <p class="text-muted small">Eggs expire quickly and need to be used within 14 days for safety</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <i class="fas fa-money-bill-wave fa-3x text-info mb-3"></i>
+                            <h5>tIDR Tokens</h5>
+                            <p class="mb-2"><strong>Budget Expiry:</strong> 90 days</p>
+                            <p class="text-muted small">Budget allocations expire after 90 days to ensure proper fund management</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-info">
+                <h6><i class="fas fa-info-circle me-2"></i>How Asset Expiry Works</h6>
+                <ul class="mb-0">
+                    <li><strong>Automatic Enforcement:</strong> Expired tokens cannot be transferred</li>
+                    <li><strong>Authority Control:</strong> Central Authority can burn expired tokens</li>
+                    <li><strong>Real-time Validation:</strong> All transfers check expiry dates before execution</li>
+                    <li><strong>Budget Constraints:</strong> tIDR tokens expire to enforce budget periods</li>
+                </ul>
             </div>
         </section>
 

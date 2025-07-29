@@ -19,16 +19,23 @@ async function main() {
   
   const TokenFactory = await ethers.getContractFactory("SimpleAgricultureToken");
   
+  // Define expiry periods (in seconds)
+  const chickenExpiryPeriod = 30 * 24 * 60 * 60; // 30 days for chickens
+  const eggExpiryPeriod = 14 * 24 * 60 * 60;     // 14 days for eggs  
+  const idrExpiryPeriod = 90 * 24 * 60 * 60;     // 90 days for budget (IDR)
+
   // Deploy tCHICKEN token
   const tChickenToken = await TokenFactory.deploy(
     "Tokenized Chicken",
     "tCHICKEN",
     "CHICKEN",
     await centralAuthority.getAddress(),
-    await deployer.getAddress()
+    await deployer.getAddress(),
+    chickenExpiryPeriod
   );
   await tChickenToken.waitForDeployment();
   console.log("🐔 tCHICKEN token deployed to:", await tChickenToken.getAddress());
+  console.log("   Default expiry: 30 days");
 
   // Deploy tEGG token
   const tEggToken = await TokenFactory.deploy(
@@ -36,10 +43,12 @@ async function main() {
     "tEGG",
     "EGG",
     await centralAuthority.getAddress(),
-    await deployer.getAddress()
+    await deployer.getAddress(),
+    eggExpiryPeriod
   );
   await tEggToken.waitForDeployment();
   console.log("🥚 tEGG token deployed to:", await tEggToken.getAddress());
+  console.log("   Default expiry: 14 days");
 
   // Deploy tIDR token
   const tIdrToken = await TokenFactory.deploy(
@@ -47,10 +56,12 @@ async function main() {
     "tIDR",
     "IDR",
     await centralAuthority.getAddress(),
-    await deployer.getAddress()
+    await deployer.getAddress(),
+    idrExpiryPeriod
   );
   await tIdrToken.waitForDeployment();
   console.log("💰 tIDR token deployed to:", await tIdrToken.getAddress());
+  console.log("   Default expiry: 90 days (budget period)");
 
   // 3. Deploy Asset Escrow
   console.log("\n📋 3. Deploying SimpleAssetEscrow...");
@@ -140,7 +151,7 @@ async function main() {
     await supplier.getAddress(),
     chickenQuantity,
     currentTime,
-    currentTime + (90 * 24 * 60 * 60), // 90 days expiry
+    currentTime + chickenExpiryPeriod, // 30 days expiry for chickens
     "Farm A - Chicken Coop 1"
   );
 
@@ -159,7 +170,7 @@ async function main() {
     await supplier.getAddress(),
     eggQuantity,
     currentTime,
-    currentTime + (7 * 24 * 60 * 60), // 7 days expiry for eggs
+    currentTime + eggExpiryPeriod, // 14 days expiry for eggs
     "Farm A - Chicken Coop 1"
   );
 
@@ -178,7 +189,7 @@ async function main() {
     await kitchen.getAddress(),
     idrQuantity,
     currentTime,
-    currentTime + (365 * 24 * 60 * 60), // 1 year expiry
+    currentTime + idrExpiryPeriod, // 90 days budget expiry
     "Bank Account - Kitchen Payment Service"
   );
 

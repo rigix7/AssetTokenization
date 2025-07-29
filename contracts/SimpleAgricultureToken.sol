@@ -16,23 +16,30 @@ contract SimpleAgricultureToken is ERC20, AccessControl, Pausable {
     string public assetType;
     address public centralAuthority;
     
-    // Asset verification tracking
+    // Asset verification and expiry tracking
     mapping(address => bool) public assetVerificationStatus;
     mapping(address => uint256) public assetExpiry;
+    mapping(address => uint256) public mintTimestamp;
+    
+    // Default expiry periods (in seconds)
+    uint256 public defaultExpiryPeriod;
     
     // Events
-    event AssetVerified(address indexed holder, uint256 amount, string location);
+    event AssetVerified(address indexed holder, uint256 amount, string location, uint256 expiryDate);
     event AssetExpired(address indexed holder, uint256 amount);
+    event ExpiryPeriodUpdated(uint256 oldPeriod, uint256 newPeriod);
     
     constructor(
         string memory name,
         string memory symbol,
         string memory _assetType,
         address _centralAuthority,
-        address defaultAdmin
+        address defaultAdmin,
+        uint256 _defaultExpiryPeriod
     ) ERC20(name, symbol) {
         assetType = _assetType;
         centralAuthority = _centralAuthority;
+        defaultExpiryPeriod = _defaultExpiryPeriod;
         
         _grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
         _grantRole(MINTER_ROLE, _centralAuthority);
@@ -49,12 +56,35 @@ contract SimpleAgricultureToken is ERC20, AccessControl, Pausable {
         string memory location
     ) external onlyRole(MINTER_ROLE) {
         require(to != address(0), "Invalid recipient");
+        require(expiryTimestamp > block.timestamp, "Expiry must be in future");
         
         _mint(to, amount);
         assetVerificationStatus[to] = true;
         assetExpiry[to] = expiryTimestamp;
+        mintTimestamp[to] = block.timestamp;
         
-        emit AssetVerified(to, amount, location);
+        emit AssetVerified(to, amount, location, expiryTimestamp);
+    }
+    
+    /**
+     * @dev Mint tokens with default expiry period
+     */
+    function mintWithDefaultExpiry(
+        address to, 
+        uint256 amount, 
+        string memory location
+    ) external onlyRole(MINTER_ROLE) {
+        require(to != address(0), "Invalid recipient");
+        require(defaultExpiryPeriod > 0, "Default expiry period not set");
+        
+        uint256 expiryTimestamp = block.timestamp + defaultExpiryPeriod;
+        
+        _mint(to, amount);
+        assetVerificationStatus[to] = true;
+        assetExpiry[to] = expiryTimestamp;
+        mintTimestamp[to] = block.timestamp;
+        
+        emit AssetVerified(to, amount, location, expiryTimestamp);
     }
     
     /**
@@ -121,21 +151,67 @@ contract SimpleAgricultureToken is ERC20, AccessControl, Pausable {
     }
     
     /**
-     * @dev Returns detailed token information
+     * @dev Update default expiry period (admin only)
+     */
+    function updateDefaultExpiryPeriod(uint256 newExpiryPeriod) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        uint256 oldPeriod = defaultExpiryPeriod;
+        defaultExpiryPeriod = newExpiryPeriod;
+        emit ExpiryPeriodUpdated(oldPeriod, newExpiryPeriod);
+    }
+    
+    /**
+     * @dev Check time remaining until expiry
+     */
+    function getTimeUntilExpiry(address holder) external view returns (uint256) {
+        if (assetExpiry[holder] == 0) return type(uint256).max; // No expiry set
+        if (block.timestamp >= assetExpiry[holder]) return 0; // Already expired
+        return assetExpiry[holder] - block.timestamp;
+    }
+    
+    /**
+     * @dev Check if tokens are expired
+     */
+    function isExpired(address holder) external view returns (bool) {
+        return assetExpiry[holder] > 0 && block.timestamp >= assetExpiry[holder];
+    }
+    
+    /**
+     * @dev Returns detailed token information including expiry
      */
     function getTokenInfo() external view returns (
         string memory tokenName,
         string memory tokenSymbol,
         string memory asset,
         uint256 totalSupply,
-        address authority
+        address authority,
+        uint256 defaultExpiry
     ) {
         return (
             name(),
             symbol(),
             assetType,
             super.totalSupply(),
-            centralAuthority
+            centralAuthority,
+            defaultExpiryPeriod
+        );
+    }
+    
+    /**
+     * @dev Get detailed holder information
+     */
+    function getHolderInfo(address holder) external view returns (
+        uint256 balance,
+        bool verified,
+        uint256 expiryDate,
+        uint256 mintDate,
+        bool expired
+    ) {
+        return (
+            balanceOf(holder),
+            assetVerificationStatus[holder],
+            assetExpiry[holder],
+            mintTimestamp[holder],
+            this.isExpired(holder)
         );
     }
 }
