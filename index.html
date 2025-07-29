@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agricultural Asset Tokenization Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-seedling me-2"></i>
+                AgriToken Platform
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#tokens">Tokens</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#escrow">Escrow</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#fractional">Fractional Assets</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Connection Status -->
+    <div class="container mt-3">
+        <div id="connectionStatus" class="alert alert-warning" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span id="statusText">Not connected to Web3. Please connect your wallet.</span>
+            <button id="connectWallet" class="btn btn-sm btn-outline-dark ms-3">Connect Wallet</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Platform Status -->
+        <section class="mb-4">
+            <div class="alert alert-success" role="alert">
+                <h4 class="alert-heading"><i class="fas fa-check-circle me-2"></i>Platform Status: Operational</h4>
+                <p class="mb-2">Agricultural Asset Tokenization Platform is fully deployed and operational on Hardhat Network.</p>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Deployed Contracts:</strong> 5 contracts</p>
+                        <p class="mb-1"><strong>Registered Suppliers:</strong> 2 verified suppliers</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="mb-1"><strong>Completed Transactions:</strong> 1 successful trade</p>
+                        <p class="mb-1"><strong>Network:</strong> Hardhat Local Development</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="mb-5">
+            <h2><i class="fas fa-tachometer-alt me-2"></i>Platform Statistics</h2>
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card bg-success text-white h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title">tCHICKEN</h5>
+                                    <h3>1,000</h3>
+                                    <small>Total Minted</small>
+                                </div>
+                                <div class="ms-3">
+                                    <i class="fas fa-drumstick-bite fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card bg-warning text-white h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title">tEGG</h5>
+                                    <h3>5,000</h3>
+                                    <small>Total Minted</small>
+                                </div>
+                                <div class="ms-3">
+                                    <i class="fas fa-egg fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card bg-info text-white h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title">tIDR</h5>
+                                    <h3>500M</h3>
+                                    <small>In Circulation</small>
+                                </div>
+                                <div class="ms-3">
+                                    <i class="fas fa-money-bill-wave fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card bg-primary text-white h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title">Completed</h5>
+                                    <h3>1</h3>
+                                    <small>Escrow Trade</small>
+                                </div>
+                                <div class="ms-3">
+                                    <i class="fas fa-handshake fa-2x"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tokens Section -->
+        <section id="tokens" class="mb-5">
+            <h2><i class="fas fa-coins me-2"></i>Token Management</h2>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-plus-circle me-2"></i>Mint Tokens (Authority Only)</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="mintTokenForm">
+                                <div class="mb-3">
+                                    <label for="tokenType" class="form-label">Token Type</label>
+                                    <select class="form-select" id="tokenType" required>
+                                        <option value="">Select Token Type</option>
+                                        <option value="CHICKEN">tCHICKEN</option>
+                                        <option value="EGG">tEGG</option>
+                                        <option value="IDR">tIDR</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="recipientAddress" class="form-label">Recipient Address</label>
+                                    <input type="text" class="form-control" id="recipientAddress" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="tokenAmount" class="form-label">Amount</label>
+                                    <input type="number" class="form-control" id="tokenAmount" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="assetLocation" class="form-label">Asset Location</label>
+                                    <input type="text" class="form-control" id="assetLocation" placeholder="Farm A, Coop 1" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Mint Tokens
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-exchange-alt me-2"></i>Transfer Tokens</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="transferTokenForm">
+                                <div class="mb-3">
+                                    <label for="transferTokenType" class="form-label">Token Type</label>
+                                    <select class="form-select" id="transferTokenType" required>
+                                        <option value="">Select Token Type</option>
+                                        <option value="CHICKEN">tCHICKEN</option>
+                                        <option value="EGG">tEGG</option>
+                                        <option value="IDR">tIDR</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="transferRecipient" class="form-label">Recipient Address</label>
+                                    <input type="text" class="form-control" id="transferRecipient" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="transferAmount" class="form-label">Amount</label>
+                                    <input type="number" class="form-control" id="transferAmount" required>
+                                </div>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-paper-plane me-2"></i>Transfer
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Escrow Section -->
+        <section id="escrow" class="mb-5">
+            <h2><i class="fas fa-shield-alt me-2"></i>Escrow Trading</h2>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-shopping-cart me-2"></i>Create Purchase Order</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="createOrderForm">
+                                <div class="mb-3">
+                                    <label for="sellerAddress" class="form-label">Seller Address</label>
+                                    <input type="text" class="form-control" id="sellerAddress" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="paymentTokenType" class="form-label">Payment Token</label>
+                                    <select class="form-select" id="paymentTokenType" required>
+                                        <option value="">Select Payment Token</option>
+                                        <option value="IDR">tIDR</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="paymentAmountOrder" class="form-label">Payment Amount</label>
+                                    <input type="number" class="form-control" id="paymentAmountOrder" required>
+                                </div>
+                                <hr>
+                                <h6>Asset Requirements</h6>
+                                <div class="mb-3">
+                                    <label for="assetTokenType" class="form-label">Asset Token Type</label>
+                                    <select class="form-select" id="assetTokenType" required>
+                                        <option value="">Select Asset Token</option>
+                                        <option value="CHICKEN">tCHICKEN</option>
+                                        <option value="EGG">tEGG</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="assetAmountOrder" class="form-label">Asset Amount</label>
+                                    <input type="number" class="form-control" id="assetAmountOrder" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="expirationHours" class="form-label">Expiration (Hours)</label>
+                                    <input type="number" class="form-control" id="expirationHours" value="24" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Create Order
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-list me-2"></i>Active Orders</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="ordersList">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                                    <p>No active orders found</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Transaction Section -->
+        <section class="mb-5">
+            <h2><i class="fas fa-history me-2"></i>Recent Successful Transaction</h2>
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Escrow Order #0 - Completed</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Transaction Details</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Order ID:</strong></td>
+                                    <td>0</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Buyer:</strong></td>
+                                    <td><code>0x90F79bf6EB2c4f870365E785982E1f101E93b906</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Seller:</strong></td>
+                                    <td><code>0x70997970C51812dc3A010C7d01b50e0d17dc79C8</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td><span class="badge bg-success">Completed</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Assets Traded</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Payment:</strong></td>
+                                    <td>10,000,000 tIDR</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Received:</strong></td>
+                                    <td>100 tCHICKEN + 1,000 tEGG</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Escrow Fee:</strong></td>
+                                    <td>100,000 tIDR (1%)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Net Payment:</strong></td>
+                                    <td>9,900,000 tIDR</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contract Addresses Section -->
+        <section class="mb-5">
+            <h2><i class="fas fa-code me-2"></i>Deployed Smart Contracts</h2>
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Contract</th>
+                                    <th>Description</th>
+                                    <th>Address</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>SimpleCentralAuthority</strong></td>
+                                    <td>Governance & Asset Verification</td>
+                                    <td><code>0x5FbDB2315678afecb367f032d93F642f64180aa3</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>SimpleAssetEscrow</strong></td>
+                                    <td>Secure Trading & Settlements</td>
+                                    <td><code>0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>tCHICKEN Token</strong></td>
+                                    <td>Tokenized Chicken Assets</td>
+                                    <td><code>0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>tEGG Token</strong></td>
+                                    <td>Tokenized Egg Assets</td>
+                                    <td><code>0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>tIDR Token</strong></td>
+                                    <td>Payment Currency</td>
+                                    <td><code>0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Fractional Assets Section -->
+        <section id="fractional" class="mb-5">
+            <h2><i class="fas fa-divide me-2"></i>Fractional Assets</h2>
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-tractor me-2"></i>Create Fractional Asset</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="createAssetForm">
+                                <div class="mb-3">
+                                    <label for="assetTypeFractional" class="form-label">Asset Type</label>
+                                    <select class="form-select" id="assetTypeFractional" required>
+                                        <option value="">Select Asset Type</option>
+                                        <option value="TRACTOR">Tractor</option>
+                                        <option value="LAND">Farmland</option>
+                                        <option value="EQUIPMENT">Equipment</option>
+                                        <option value="BUILDING">Building</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="assetLocationFractional" class="form-label">Location</label>
+                                    <input type="text" class="form-control" id="assetLocationFractional" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="assetValue" class="form-label">Total Value (IDR)</label>
+                                    <input type="number" class="form-control" id="assetValue" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="initialOwner" class="form-label">Initial Owner</label>
+                                    <input type="text" class="form-control" id="initialOwner" required>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="startFractional">
+                                    <label class="form-check-label" for="startFractional">
+                                        Start as fractional (default: NFT)
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Create Asset
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-chart-pie me-2"></i>Fractional Ownership</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="fractionalAssetsList">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-chart-pie fa-3x mb-3"></i>
+                                    <p>No fractional assets found</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transaction Log -->
+        <section id="transactions" class="mb-5">
+            <h2><i class="fas fa-history me-2"></i>Recent Transactions</h2>
+            <div class="card">
+                <div class="card-body">
+                    <div id="transactionLog">
+                        <div class="text-center text-muted">
+                            <i class="fas fa-clock fa-3x mb-3"></i>
+                            <p>No transactions yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Agricultural Asset Tokenization</h5>
+                    <p class="small">ERC-3643 compliant permissioned tokens for agricultural commodities with escrow-based trading and fractional ownership.</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Features</h6>
+                    <ul class="list-unstyled small">
+                        <li><i class="fas fa-check me-2"></i>Permissioned Token Transfers</li>
+                        <li><i class="fas fa-check me-2"></i>Asset Verification & Compliance</li>
+                        <li><i class="fas fa-check me-2"></i>Secure Escrow Trading</li>
+                        <li><i class="fas fa-check me-2"></i>Fractional Asset Ownership</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-12 text-center">
+                    <small>&copy; 2024 Agricultural Asset Tokenization Platform. Built with Hardhat, OpenZeppelin, and Bootstrap.</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p id="loadingText">Processing transaction...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i>Success
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="successMessage">Transaction completed successfully!</p>
+                    <div class="d-grid">
+                        <a id="txHashLink" href="#" target="_blank" class="btn btn-outline-primary">
+                            <i class="fas fa-external-link-alt me-2"></i>View on Explorer
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Error
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="errorMessage">An error occurred. Please try again.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
