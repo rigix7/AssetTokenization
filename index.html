@@ -25,13 +25,13 @@
                         <a class="nav-link" href="#dashboard">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#tokens">Tokens</a>
+                        <a class="nav-link" href="#farmer">🚜 Farmers</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#escrow">Escrow</a>
+                        <a class="nav-link" href="#kitchen">🍳 Kitchens</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#fractional">Fractional Assets</a>
+                        <a class="nav-link" href="#authority">👔 Authority</a>
                     </li>
                 </ul>
             </div>
@@ -154,146 +154,461 @@
             </div>
         </section>
 
-        <!-- Tokens Section -->
-        <section id="tokens" class="mb-5">
-            <h2><i class="fas fa-coins me-2"></i>Token Management</h2>
+        <!-- Chicken Farmers Section -->
+        <section id="farmer" class="mb-5">
             <div class="row">
-                <div class="col-lg-6 mb-4">
+                <div class="col-12 mb-4">
+                    <div class="card border-success">
+                        <div class="card-header bg-success text-white">
+                            <h3 class="mb-0"><i class="fas fa-tractor me-2"></i>Chicken Farmers Dashboard</h3>
+                            <p class="mb-0 mt-2">Manage your poultry assets and tokens</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Farmer Assets Overview -->
+                <div class="col-lg-4 mb-4">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-plus-circle me-2"></i>Mint Tokens (Authority Only)</h5>
+                            <h5><i class="fas fa-warehouse me-2"></i>My Assets</h5>
                         </div>
                         <div class="card-body">
-                            <form id="mintTokenForm">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-drumstick-bite text-success me-2"></i>tCHICKEN</span>
+                                    <strong>900</strong>
+                                </div>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-success" style="width: 90%"></div>
+                                </div>
+                                <small class="text-muted">Expires in 28 days</small>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-egg text-warning me-2"></i>tEGG</span>
+                                    <strong>4,000</strong>
+                                </div>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-warning" style="width: 80%"></div>
+                                </div>
+                                <small class="text-muted">Expires in 12 days</small>
+                            </div>
+                            <div class="alert alert-info mt-3">
+                                <small><i class="fas fa-info-circle me-1"></i>Assets received from verified deliveries</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transfer Assets -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-paper-plane me-2"></i>Transfer Assets</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="farmerTransferForm">
                                 <div class="mb-3">
-                                    <label for="tokenType" class="form-label">Token Type</label>
-                                    <select class="form-select" id="tokenType" required>
-                                        <option value="">Select Token Type</option>
-                                        <option value="CHICKEN">tCHICKEN</option>
-                                        <option value="EGG">tEGG</option>
-                                        <option value="IDR">tIDR</option>
+                                    <label for="farmerAssetType" class="form-label">Asset Type</label>
+                                    <select class="form-select" id="farmerAssetType" required>
+                                        <option value="">Select Asset</option>
+                                        <option value="CHICKEN">🐔 Chickens</option>
+                                        <option value="EGG">🥚 Eggs</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="recipientAddress" class="form-label">Recipient Address</label>
-                                    <input type="text" class="form-control" id="recipientAddress" required>
+                                    <label for="farmerRecipient" class="form-label">Send To</label>
+                                    <select class="form-select" id="farmerRecipient" required>
+                                        <option value="">Select Recipient</option>
+                                        <option value="kitchen">🍳 Central Kitchen</option>
+                                        <option value="other">📝 Custom Address</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3" id="customRecipientDiv" style="display: none;">
+                                    <input type="text" class="form-control" id="farmerCustomRecipient" placeholder="Recipient Address">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="tokenAmount" class="form-label">Amount</label>
-                                    <input type="number" class="form-control" id="tokenAmount" required>
+                                    <label for="farmerAmount" class="form-label">Quantity</label>
+                                    <input type="number" class="form-control" id="farmerAmount" required>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="assetLocation" class="form-label">Asset Location</label>
-                                    <input type="text" class="form-control" id="assetLocation" placeholder="Farm A, Coop 1" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="customExpiryDays" class="form-label">Custom Expiry (Days)</label>
-                                    <input type="number" class="form-control" id="customExpiryDays" placeholder="Leave empty for default expiry">
-                                    <div class="form-text">Default: tCHICKEN=30 days, tEGG=14 days, tIDR=90 days</div>
-                                </div>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-plus me-2"></i>Mint Tokens
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-truck me-2"></i>Send Assets
                                 </button>
                             </form>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6 mb-4">
+
+                <!-- Asset Status -->
+                <div class="col-lg-4 mb-4">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-exchange-alt me-2"></i>Transfer Tokens</h5>
+                            <h5><i class="fas fa-clock me-2"></i>Asset Status</h5>
                         </div>
                         <div class="card-body">
-                            <form id="transferTokenForm">
-                                <div class="mb-3">
-                                    <label for="transferTokenType" class="form-label">Token Type</label>
-                                    <select class="form-select" id="transferTokenType" required>
-                                        <option value="">Select Token Type</option>
-                                        <option value="CHICKEN">tCHICKEN</option>
-                                        <option value="EGG">tEGG</option>
-                                        <option value="IDR">tIDR</option>
-                                    </select>
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Farm Location A</strong>
+                                        <br><small class="text-muted">Chicken Coop 1</small>
+                                    </div>
+                                    <span class="badge bg-success">Active</span>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="transferRecipient" class="form-label">Recipient Address</label>
-                                    <input type="text" class="form-control" id="transferRecipient" required>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Last Verification</strong>
+                                        <br><small class="text-muted">2 hours ago</small>
+                                    </div>
+                                    <span class="badge bg-info">✓ Verified</span>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="transferAmount" class="form-label">Amount</label>
-                                    <input type="number" class="form-control" id="transferAmount" required>
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Daily Production</strong>
+                                        <br><small class="text-muted">~150 eggs/day</small>
+                                    </div>
+                                    <span class="badge bg-warning">📊 Tracked</span>
                                 </div>
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-paper-plane me-2"></i>Transfer
-                                </button>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Escrow Section -->
-        <section id="escrow" class="mb-5">
-            <h2><i class="fas fa-shield-alt me-2"></i>Escrow Trading</h2>
+        <!-- Central Kitchen Section -->
+        <section id="kitchen" class="mb-5">
             <div class="row">
-                <div class="col-lg-6 mb-4">
+                <div class="col-12 mb-4">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h3 class="mb-0"><i class="fas fa-utensils me-2"></i>Central Kitchen Dashboard</h3>
+                            <p class="mb-0 mt-2">Place orders and manage ingredient procurement</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Budget Overview -->
+                <div class="col-lg-4 mb-4">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-shopping-cart me-2"></i>Create Purchase Order</h5>
+                            <h5><i class="fas fa-wallet me-2"></i>Budget Status</h5>
                         </div>
                         <div class="card-body">
-                            <form id="createOrderForm">
-                                <div class="mb-3">
-                                    <label for="sellerAddress" class="form-label">Seller Address</label>
-                                    <input type="text" class="form-control" id="sellerAddress" required>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-money-bill-wave text-info me-2"></i>Available Budget</span>
+                                    <strong>490M tIDR</strong>
                                 </div>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-info" style="width: 98%"></div>
+                                </div>
+                                <small class="text-muted">Budget expires in 88 days</small>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-shopping-cart text-success me-2"></i>Spent Today</span>
+                                    <strong>10M tIDR</strong>
+                                </div>
+                            </div>
+                            <div class="alert alert-success">
+                                <small><i class="fas fa-check-circle me-1"></i>Last transaction completed successfully</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Place Order -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-shopping-cart me-2"></i>Place Order</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="kitchenOrderForm">
                                 <div class="mb-3">
-                                    <label for="paymentTokenType" class="form-label">Payment Token</label>
-                                    <select class="form-select" id="paymentTokenType" required>
-                                        <option value="">Select Payment Token</option>
-                                        <option value="IDR">tIDR</option>
+                                    <label for="kitchenSupplier" class="form-label">Select Supplier</label>
+                                    <select class="form-select" id="kitchenSupplier" required>
+                                        <option value="">Choose Supplier</option>
+                                        <option value="farmer">🚜 Happy Farm Supplier</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="paymentAmountOrder" class="form-label">Payment Amount</label>
-                                    <input type="number" class="form-control" id="paymentAmountOrder" required>
-                                </div>
-                                <hr>
-                                <h6>Asset Requirements</h6>
-                                <div class="mb-3">
-                                    <label for="assetTokenType" class="form-label">Asset Token Type</label>
-                                    <select class="form-select" id="assetTokenType" required>
-                                        <option value="">Select Asset Token</option>
-                                        <option value="CHICKEN">tCHICKEN</option>
-                                        <option value="EGG">tEGG</option>
-                                    </select>
+                                    <label class="form-label">Order Items</label>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <input type="number" class="form-control" id="kitchenChickenQty" placeholder="Chickens">
+                                        </div>
+                                        <div class="col-6">
+                                            <input type="number" class="form-control" id="kitchenEggQty" placeholder="Eggs">
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="assetAmountOrder" class="form-label">Asset Amount</label>
-                                    <input type="number" class="form-control" id="assetAmountOrder" required>
+                                    <label for="kitchenBudget" class="form-label">Budget Allocation (tIDR)</label>
+                                    <input type="number" class="form-control" id="kitchenBudget" placeholder="e.g., 5000000" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="expirationHours" class="form-label">Expiration (Hours)</label>
-                                    <input type="number" class="form-control" id="expirationHours" value="24" required>
+                                    <label for="kitchenDeadline" class="form-label">Order Deadline (Hours)</label>
+                                    <input type="number" class="form-control" id="kitchenDeadline" value="24" required>
                                 </div>
-                                <button type="submit" class="btn btn-primary">
+                                <button type="submit" class="btn btn-warning w-100">
                                     <i class="fas fa-plus me-2"></i>Create Order
                                 </button>
                             </form>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-6 mb-4">
+
+                <!-- Current Inventory -->
+                <div class="col-lg-4 mb-4">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-list me-2"></i>Active Orders</h5>
+                            <h5><i class="fas fa-boxes me-2"></i>Current Inventory</h5>
                         </div>
                         <div class="card-body">
-                            <div id="ordersList">
-                                <div class="text-center text-muted">
-                                    <i class="fas fa-inbox fa-3x mb-3"></i>
-                                    <p>No active orders found</p>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-drumstick-bite text-success me-2"></i>Chickens</span>
+                                    <strong>100</strong>
                                 </div>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-success" style="width: 25%"></div>
+                                </div>
+                                <small class="text-muted">Expires in 28 days</small>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-egg text-warning me-2"></i>Eggs</span>
+                                    <strong>1,000</strong>
+                                </div>
+                                <div class="progress mb-2">
+                                    <div class="progress-bar bg-warning" style="width: 70%"></div>
+                                </div>
+                                <small class="text-muted">Expires in 12 days</small>
+                            </div>
+                            <div class="mt-3">
+                                <button class="btn btn-outline-primary btn-sm w-100">
+                                    <i class="fas fa-chart-line me-2"></i>View Usage Analytics
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Central Authority Section -->
+        <section id="authority" class="mb-5">
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <h3 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Central Authority Dashboard</h3>
+                            <p class="mb-0 mt-2">Control tokenized assets, verify suppliers, and manage the ecosystem</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- System Overview -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-chart-pie me-2"></i>System Overview</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <h4 class="text-success">2</h4>
+                                    <small>Suppliers</small>
+                                </div>
+                                <div class="col-4">
+                                    <h4 class="text-warning">5</h4>
+                                    <small>Contracts</small>
+                                </div>
+                                <div class="col-4">
+                                    <h4 class="text-info">1</h4>
+                                    <small>Trades</small>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="list-group list-group-flush">
+                                <div class="list-group-item d-flex justify-content-between">
+                                    <span>Total tCHICKEN</span>
+                                    <strong>1,000</strong>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between">
+                                    <span>Total tEGG</span>
+                                    <strong>5,000</strong>
+                                </div>
+                                <div class="list-group-item d-flex justify-content-between">
+                                    <span>Total tIDR</span>
+                                    <strong>500M</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mint Tokens -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-plus-circle me-2"></i>Mint New Tokens</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="authorityMintForm">
+                                <div class="mb-3">
+                                    <label for="authorityTokenType" class="form-label">Token Type</label>
+                                    <select class="form-select" id="authorityTokenType" required>
+                                        <option value="">Select Token</option>
+                                        <option value="CHICKEN">🐔 tCHICKEN (30 days)</option>
+                                        <option value="EGG">🥚 tEGG (14 days)</option>
+                                        <option value="IDR">💰 tIDR (90 days)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="authorityRecipient" class="form-label">Recipient</label>
+                                    <select class="form-select" id="authorityRecipient" required>
+                                        <option value="">Select Recipient</option>
+                                        <option value="farmer">🚜 Farmer (Supplier)</option>
+                                        <option value="kitchen">🍳 Kitchen (Buyer)</option>
+                                        <option value="other">📝 Custom Address</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3" id="authorityCustomDiv" style="display: none;">
+                                    <input type="text" class="form-control" id="authorityCustomRecipient" placeholder="Recipient Address">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="authorityAmount" class="form-label">Amount</label>
+                                    <input type="number" class="form-control" id="authorityAmount" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="authorityLocation" class="form-label">Asset Location</label>
+                                    <input type="text" class="form-control" id="authorityLocation" placeholder="Farm A, Bank Account, etc." required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-coins me-2"></i>Mint Tokens
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Asset Verification -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-check-circle me-2"></i>Asset Verification</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <h6>Pending Verifications</h6>
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check me-2"></i>All assets currently verified
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Recent Verifications</h6>
+                                <div class="list-group">
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>1000 Chickens</strong>
+                                            <br><small class="text-muted">Farm A - Physical inspection</small>
+                                        </div>
+                                        <span class="badge bg-success">✓</span>
+                                    </div>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>5000 Eggs</strong>
+                                            <br><small class="text-muted">Farm A - Daily collection</small>
+                                        </div>
+                                        <span class="badge bg-success">✓</span>
+                                    </div>
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>500M IDR</strong>
+                                            <br><small class="text-muted">Bank verification</small>
+                                        </div>
+                                        <span class="badge bg-success">✓</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Supplier Management -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-users me-2"></i>Supplier Management</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Supplier</th>
+                                            <th>Address</th>
+                                            <th>Assets</th>
+                                            <th>Status</th>
+                                            <th>Last Verification</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <strong>Happy Farm Supplier</strong>
+                                                <br><small class="text-muted">Rural Farm Location A</small>
+                                            </td>
+                                            <td><code>0x7099...79C8</code></td>
+                                            <td>
+                                                <span class="badge bg-success me-1">CHICKEN</span>
+                                                <span class="badge bg-warning">EGG</span>
+                                            </td>
+                                            <td><span class="badge bg-success">Approved</span></td>
+                                            <td>2 hours ago</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-success">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <strong>Kitchen Payment Service</strong>
+                                                <br><small class="text-muted">Kitchen Location</small>
+                                            </td>
+                                            <td><code>0x90F7...b906</code></td>
+                                            <td>
+                                                <span class="badge bg-info">IDR</span>
+                                            </td>
+                                            <td><span class="badge bg-success">Approved</span></td>
+                                            <td>1 hour ago</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-success">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
