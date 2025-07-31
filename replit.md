@@ -4,7 +4,7 @@
 
 This is a comprehensive blockchain-based platform for tokenizing real-world agricultural assets, built using Hardhat, Solidity, and web technologies. The platform enables the tokenization of physical agricultural assets (like chickens, eggs, and other farm products) and facilitates secure trading through smart contracts with built-in compliance and escrow mechanisms.
 
-**Current Status**: The platform is fully operational with comprehensive bilingual support (English/Bahasa Indonesia) and dedicated demo wallets for role-based presentations. Enhanced smart contracts feature expiry date functionality for perishable assets (chickens: 30 days, eggs: 14 days, tIDR: 90 days). The web interface supports three distinct user segments with instant language switching. Automated demo wallet system provides consistent stakeholder demonstrations with pre-configured roles: Authority, Farmers A/B/C, Kitchens A/B, Verifier, and Operator accounts.
+**Current Status**: Clean, professional demo interface focused on smart contract interactions. Direct blockchain connectivity without MetaMask requirement. Features wallet-based role switching with real token balances from deployed contracts. Supports live token minting (Authority only) and transfers between wallets. All 8 stakeholder roles available for comprehensive demonstrations with actual blockchain transactions.
 
 ## User Preferences
 
