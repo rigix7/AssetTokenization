@@ -4,7 +4,7 @@
 
 This is a comprehensive blockchain-based platform for tokenizing real-world agricultural assets, built using Hardhat, Solidity, and web technologies. The platform enables the tokenization of physical agricultural assets (like chickens, eggs, and other farm products) and facilitates secure trading through smart contracts with built-in compliance and escrow mechanisms.
 
-**Current Status**: The platform is fully operational with enhanced smart contracts featuring comprehensive expiry date functionality for perishable assets. All tokens (tCHICKEN, tEGG, and tIDR) now include expiry parameters - chickens expire in 30 days, eggs in 14 days, and tIDR budget tokens in 90 days. The web interface has been redesigned into three distinct user segments (Farmers, Kitchens, Authority) for effective stakeholder demonstrations. Automated demo setup ensures consistent presentation experience despite local blockchain resets.
+**Current Status**: The platform is fully operational with comprehensive bilingual support (English/Bahasa Indonesia) and dedicated demo wallets for role-based presentations. Enhanced smart contracts feature expiry date functionality for perishable assets (chickens: 30 days, eggs: 14 days, tIDR: 90 days). The web interface supports three distinct user segments with instant language switching. Automated demo wallet system provides consistent stakeholder demonstrations with pre-configured roles: Authority, Farmers A/B/C, Kitchens A/B, Verifier, and Operator accounts.
 
 ## User Preferences
 
@@ -32,6 +32,8 @@ The platform follows a modular smart contract design with clear separation of co
 - **Web3 Integration**: Direct browser wallet connectivity
 - **UI Framework**: Bootstrap for responsive design with Font Awesome icons
 - **Architecture**: Single-page application with modular sections
+- **Internationalization**: Full bilingual support (English/Bahasa Indonesia) with instant language switching
+- **Demo System**: Pre-configured wallets for role-based stakeholder demonstrations
 
 ## Key Components
 
@@ -125,6 +127,27 @@ The platform follows a modular smart contract design with clear separation of co
 3. **Escrow System**: Deploy and configure escrow mechanisms
 4. **Frontend Integration**: Connect web interface to deployed contracts
 5. **Testing**: Execute comprehensive integration tests
+
+### Demo Wallet System
+
+#### Role-Based Demo Accounts
+- **Authority**: Platform governance and token minting (`0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266`)
+- **Farmers**: Three different sized operations with pre-allocated assets
+  - Happy Farm A: 1,000 tCHICKEN, 5,000 tEGG (`0x70997970C51812dc3A010C7d01b50e0d17dc79C8`)
+  - Green Valley B: 600 tCHICKEN, 3,000 tEGG (`0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC`)
+  - Sunrise Poultry C: 200 tCHICKEN, 1,200 tEGG (`0x90F79bf6EB2c4f870365E785982E1f101E93b906`)
+- **Kitchens**: Two procurement operations with different budgets
+  - Kitchen Alpha: 800M tIDR budget (`0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65`)
+  - Kitchen Beta: 500M tIDR budget (`0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc`)
+- **Support Roles**: 
+  - Independent Verifier (`0x976EA74026E726554dB657fA54763abd0C3a0aa9`)
+  - Platform Operator (`0x14dC79964da2C08b23698B3D3cc7Ca32193d9955`)
+
+#### Bilingual Interface System
+- **Language Support**: English and Bahasa Indonesia with 150+ translation keys
+- **Translation Engine**: Dynamic content switching preserving all functionality
+- **User Experience**: Language switcher with flag icons in navigation
+- **Coverage**: Complete translation of Dashboard, Farmers, Kitchens, and Authority panels
 
 ### Key Architectural Decisions
 
