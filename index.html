@@ -22,16 +22,29 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="#dashboard">Dashboard</a>
+                        <a class="nav-link" href="#dashboard" data-i18n="nav.dashboard">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#farmer">🚜 Farmers</a>
+                        <a class="nav-link" href="#farmer" data-i18n="nav.farmers">🚜 Farmers</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#kitchen">🍳 Kitchens</a>
+                        <a class="nav-link" href="#kitchen" data-i18n="nav.kitchens">🍳 Kitchens</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#authority">👔 Authority</a>
+                        <a class="nav-link" href="#authority" data-i18n="nav.authority">👔 Authority</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-globe me-1"></i><span id="currentLang">EN</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')">
+                                <img src="https://flagcdn.com/w20/us.png" width="20" class="me-2">English
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="changeLanguage('id')">
+                                <img src="https://flagcdn.com/w20/id.png" width="20" class="me-2">Bahasa Indonesia
+                            </a></li>
+                        </ul>
                     </li>
                 </ul>
             </div>
@@ -42,8 +55,8 @@
     <div class="container mt-3">
         <div id="connectionStatus" class="alert alert-warning" role="alert">
             <i class="fas fa-exclamation-triangle me-2"></i>
-            <span id="statusText">Not connected to Web3. Please connect your wallet.</span>
-            <button id="connectWallet" class="btn btn-sm btn-outline-dark ms-3">Connect Wallet</button>
+            <span id="statusText" data-i18n="connection.not_connected">Not connected to Web3. Please connect your wallet.</span>
+            <button id="connectWallet" class="btn btn-sm btn-outline-dark ms-3" data-i18n="connection.connect_wallet">Connect Wallet</button>
         </div>
     </div>
 
@@ -52,17 +65,17 @@
         <!-- Platform Status -->
         <section class="mb-4">
             <div class="alert alert-success" role="alert">
-                <h4 class="alert-heading"><i class="fas fa-check-circle me-2"></i>Platform Status: Operational</h4>
-                <p class="mb-2">Agricultural Asset Tokenization Platform is fully deployed and operational on Hardhat Network.</p>
+                <h4 class="alert-heading"><i class="fas fa-check-circle me-2"></i><span data-i18n="status.platform_operational">Platform Status: Operational</span></h4>
+                <p class="mb-2" data-i18n="status.platform_description">Agricultural Asset Tokenization Platform is fully deployed and operational on Hardhat Network.</p>
                 <hr>
                 <div class="row">
                     <div class="col-md-6">
-                        <p class="mb-1"><strong>Deployed Contracts:</strong> 5 contracts</p>
-                        <p class="mb-1"><strong>Registered Suppliers:</strong> 2 verified suppliers</p>
+                        <p class="mb-1"><strong data-i18n="status.deployed_contracts">Deployed Contracts:</strong> 5 contracts</p>
+                        <p class="mb-1"><strong data-i18n="status.registered_suppliers">Registered Suppliers:</strong> 2 verified suppliers</p>
                     </div>
                     <div class="col-md-6">
-                        <p class="mb-1"><strong>Completed Transactions:</strong> 1 successful trade</p>
-                        <p class="mb-1"><strong>Network:</strong> Hardhat Local Development</p>
+                        <p class="mb-1"><strong data-i18n="status.completed_transactions">Completed Transactions:</strong> 1 successful trade</p>
+                        <p class="mb-1"><strong data-i18n="status.network">Network:</strong> Hardhat Local Development</p>
                     </div>
                 </div>
             </div>
@@ -70,7 +83,7 @@
 
         <!-- Dashboard Section -->
         <section id="dashboard" class="mb-5">
-            <h2><i class="fas fa-tachometer-alt me-2"></i>Platform Statistics</h2>
+            <h2><i class="fas fa-tachometer-alt me-2"></i><span data-i18n="dashboard.platform_statistics">Platform Statistics</span></h2>
             <div class="row">
                 <div class="col-lg-3 col-md-6 mb-4">
                     <div class="card bg-success text-white h-100">
@@ -79,10 +92,10 @@
                                 <div class="flex-grow-1">
                                     <h5 class="card-title">tCHICKEN</h5>
                                     <h3>1,000</h3>
-                                    <small>Total Minted</small>
+                                    <small data-i18n="dashboard.total_minted">Total Minted</small>
                                     <div class="mt-2">
                                         <span class="badge bg-light text-dark">
-                                            <i class="fas fa-clock me-1"></i>30 days expiry
+                                            <i class="fas fa-clock me-1"></i>30 <span data-i18n="dashboard.days_expiry">days expiry</span>
                                         </span>
                                     </div>
                                 </div>
@@ -100,10 +113,10 @@
                                 <div class="flex-grow-1">
                                     <h5 class="card-title">tEGG</h5>
                                     <h3>5,000</h3>
-                                    <small>Total Minted</small>
+                                    <small data-i18n="dashboard.total_minted">Total Minted</small>
                                     <div class="mt-2">
                                         <span class="badge bg-light text-dark">
-                                            <i class="fas fa-clock me-1"></i>14 days expiry
+                                            <i class="fas fa-clock me-1"></i>14 <span data-i18n="dashboard.days_expiry">days expiry</span>
                                         </span>
                                     </div>
                                 </div>
@@ -121,10 +134,10 @@
                                 <div class="flex-grow-1">
                                     <h5 class="card-title">tIDR</h5>
                                     <h3>500M</h3>
-                                    <small>Budget Allocation</small>
+                                    <small data-i18n="dashboard.budget_allocation">Budget Allocation</small>
                                     <div class="mt-2">
                                         <span class="badge bg-light text-dark">
-                                            <i class="fas fa-clock me-1"></i>90 days budget
+                                            <i class="fas fa-clock me-1"></i>90 <span data-i18n="dashboard.days_budget">days budget</span>
                                         </span>
                                     </div>
                                 </div>
@@ -140,9 +153,9 @@
                         <div class="card-body">
                             <div class="d-flex align-items-center">
                                 <div class="flex-grow-1">
-                                    <h5 class="card-title">Completed</h5>
+                                    <h5 class="card-title" data-i18n="dashboard.completed">Completed</h5>
                                     <h3>1</h3>
-                                    <small>Escrow Trade</small>
+                                    <small data-i18n="dashboard.escrow_trade">Escrow Trade</small>
                                 </div>
                                 <div class="ms-3">
                                     <i class="fas fa-handshake fa-2x"></i>
@@ -160,8 +173,8 @@
                 <div class="col-12 mb-4">
                     <div class="card border-success">
                         <div class="card-header bg-success text-white">
-                            <h3 class="mb-0"><i class="fas fa-tractor me-2"></i>Chicken Farmers Dashboard</h3>
-                            <p class="mb-0 mt-2">Manage your poultry assets and tokens</p>
+                            <h3 class="mb-0"><i class="fas fa-tractor me-2"></i><span data-i18n="farmers.title">Chicken Farmers Dashboard</span></h3>
+                            <p class="mb-0 mt-2" data-i18n="farmers.subtitle">Manage your poultry assets and tokens</p>
                         </div>
                     </div>
                 </div>
@@ -172,7 +185,7 @@
                 <div class="col-lg-4 mb-4">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-warehouse me-2"></i>My Assets</h5>
+                            <h5><i class="fas fa-warehouse me-2"></i><span data-i18n="farmers.my_assets">My Assets</span></h5>
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
@@ -183,7 +196,7 @@
                                 <div class="progress mb-2">
                                     <div class="progress-bar bg-success" style="width: 90%"></div>
                                 </div>
-                                <small class="text-muted">Expires in 28 days</small>
+                                <small class="text-muted"><span data-i18n="farmers.expires_in">Expires in</span> 28 <span data-i18n="farmers.days">days</span></small>
                             </div>
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -193,10 +206,10 @@
                                 <div class="progress mb-2">
                                     <div class="progress-bar bg-warning" style="width: 80%"></div>
                                 </div>
-                                <small class="text-muted">Expires in 12 days</small>
+                                <small class="text-muted"><span data-i18n="farmers.expires_in">Expires in</span> 12 <span data-i18n="farmers.days">days</span></small>
                             </div>
                             <div class="alert alert-info mt-3">
-                                <small><i class="fas fa-info-circle me-1"></i>Assets received from verified deliveries</small>
+                                <small><i class="fas fa-info-circle me-1"></i><span data-i18n="farmers.assets_received">Assets received from verified deliveries</span></small>
                             </div>
                         </div>
                     </div>
@@ -206,35 +219,35 @@
                 <div class="col-lg-4 mb-4">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-paper-plane me-2"></i>Transfer Assets</h5>
+                            <h5><i class="fas fa-paper-plane me-2"></i><span data-i18n="farmers.transfer_assets">Transfer Assets</span></h5>
                         </div>
                         <div class="card-body">
                             <form id="farmerTransferForm">
                                 <div class="mb-3">
-                                    <label for="farmerAssetType" class="form-label">Asset Type</label>
+                                    <label for="farmerAssetType" class="form-label" data-i18n="farmers.asset_type">Asset Type</label>
                                     <select class="form-select" id="farmerAssetType" required>
-                                        <option value="">Select Asset</option>
-                                        <option value="CHICKEN">🐔 Chickens</option>
-                                        <option value="EGG">🥚 Eggs</option>
+                                        <option value="" data-i18n="farmers.select_asset">Select Asset</option>
+                                        <option value="CHICKEN" data-i18n="farmers.chickens">🐔 Chickens</option>
+                                        <option value="EGG" data-i18n="farmers.eggs">🥚 Eggs</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="farmerRecipient" class="form-label">Send To</label>
+                                    <label for="farmerRecipient" class="form-label" data-i18n="farmers.send_to">Send To</label>
                                     <select class="form-select" id="farmerRecipient" required>
-                                        <option value="">Select Recipient</option>
-                                        <option value="kitchen">🍳 Central Kitchen</option>
-                                        <option value="other">📝 Custom Address</option>
+                                        <option value="" data-i18n="farmers.select_recipient">Select Recipient</option>
+                                        <option value="kitchen" data-i18n="farmers.central_kitchen">🍳 Central Kitchen</option>
+                                        <option value="other" data-i18n="farmers.custom_address">📝 Custom Address</option>
                                     </select>
                                 </div>
                                 <div class="mb-3" id="customRecipientDiv" style="display: none;">
-                                    <input type="text" class="form-control" id="farmerCustomRecipient" placeholder="Recipient Address">
+                                    <input type="text" class="form-control" id="farmerCustomRecipient" data-i18n-placeholder="farmers.recipient_address">
                                 </div>
                                 <div class="mb-3">
-                                    <label for="farmerAmount" class="form-label">Quantity</label>
+                                    <label for="farmerAmount" class="form-label" data-i18n="farmers.quantity">Quantity</label>
                                     <input type="number" class="form-control" id="farmerAmount" required>
                                 </div>
                                 <button type="submit" class="btn btn-success w-100">
-                                    <i class="fas fa-truck me-2"></i>Send Assets
+                                    <i class="fas fa-truck me-2"></i><span data-i18n="farmers.send_assets">Send Assets</span>
                                 </button>
                             </form>
                         </div>
@@ -283,8 +296,8 @@
                 <div class="col-12 mb-4">
                     <div class="card border-warning">
                         <div class="card-header bg-warning text-dark">
-                            <h3 class="mb-0"><i class="fas fa-utensils me-2"></i>Central Kitchen Dashboard</h3>
-                            <p class="mb-0 mt-2">Place orders and manage ingredient procurement</p>
+                            <h3 class="mb-0"><i class="fas fa-utensils me-2"></i><span data-i18n="kitchen.title">Central Kitchen Dashboard</span></h3>
+                            <p class="mb-0 mt-2" data-i18n="kitchen.subtitle">Place orders and manage ingredient procurement</p>
                         </div>
                     </div>
                 </div>
@@ -295,27 +308,27 @@
                 <div class="col-lg-4 mb-4">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-wallet me-2"></i>Budget Status</h5>
+                            <h5><i class="fas fa-wallet me-2"></i><span data-i18n="kitchen.budget_status">Budget Status</span></h5>
                         </div>
                         <div class="card-body">
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span><i class="fas fa-money-bill-wave text-info me-2"></i>Available Budget</span>
+                                    <span><i class="fas fa-money-bill-wave text-info me-2"></i><span data-i18n="kitchen.available_budget">Available Budget</span></span>
                                     <strong>490M tIDR</strong>
                                 </div>
                                 <div class="progress mb-2">
                                     <div class="progress-bar bg-info" style="width: 98%"></div>
                                 </div>
-                                <small class="text-muted">Budget expires in 88 days</small>
+                                <small class="text-muted"><span data-i18n="kitchen.budget_expires">Budget expires in</span> 88 <span data-i18n="farmers.days">days</span></small>
                             </div>
                             <div class="mb-3">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span><i class="fas fa-shopping-cart text-success me-2"></i>Spent Today</span>
+                                    <span><i class="fas fa-shopping-cart text-success me-2"></i><span data-i18n="kitchen.spent_today">Spent Today</span></span>
                                     <strong>10M tIDR</strong>
                                 </div>
                             </div>
                             <div class="alert alert-success">
-                                <small><i class="fas fa-check-circle me-1"></i>Last transaction completed successfully</small>
+                                <small><i class="fas fa-check-circle me-1"></i><span data-i18n="kitchen.last_transaction">Last transaction completed successfully</span></small>
                             </div>
                         </div>
                     </div>
@@ -325,7 +338,7 @@
                 <div class="col-lg-4 mb-4">
                     <div class="card">
                         <div class="card-header">
-                            <h5><i class="fas fa-shopping-cart me-2"></i>Place Order</h5>
+                            <h5><i class="fas fa-shopping-cart me-2"></i><span data-i18n="kitchen.place_order">Place Order</span></h5>
                         </div>
                         <div class="card-body">
                             <form id="kitchenOrderForm">
@@ -880,7 +893,7 @@
                     <div class="spinner-border text-primary mb-3" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p id="loadingText">Processing transaction...</p>
+                    <p id="loadingText" data-i18n="common.processing">Processing transaction...</p>
                 </div>
             </div>
         </div>
@@ -928,6 +941,7 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="js/translations.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
