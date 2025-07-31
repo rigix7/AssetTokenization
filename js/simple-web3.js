@@ -1,21 +1,12 @@
-// Direct Web3 connection without MetaMask requirement
-// Similar to Remix IDE's approach for local development
+// Simplified Web3 connection for demo purposes
+// Works without MetaMask, connects directly to local Hardhat node
 
-class DirectWeb3Manager {
+class SimpleWeb3Demo {
     constructor() {
-        this.web3 = null;
-        this.currentWallet = null;
-        this.contracts = {};
-        this.demoWallets = this.initializeDemoWallets();
-        this.isConnected = false;
-    }
-
-    initializeDemoWallets() {
-        return {
+        this.demoWallets = {
             'authority': {
                 name: 'Central Authority',
                 address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-                privateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
                 description: 'Platform governance and token minting',
                 icon: '👔',
                 balances: { tCHICKEN: '0', tEGG: '0', tIDR: '0' }
@@ -23,15 +14,13 @@ class DirectWeb3Manager {
             'farmer_a': {
                 name: 'Happy Farm Supplier A',
                 address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
-                privateKey: '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d',
                 description: 'Large chicken farm - 1000 birds',
                 icon: '🚜',
-                balances: { tCHICKEN: '1000', tEGG: '5000', tIDR: '9900000' }
+                balances: { tCHICKEN: '900', tEGG: '4000', tIDR: '9900000' }
             },
             'farmer_b': {
                 name: 'Green Valley Farm B',
                 address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
-                privateKey: '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a',
                 description: 'Medium egg producer - 500 hens',
                 icon: '🚜',
                 balances: { tCHICKEN: '600', tEGG: '3000', tIDR: '0' }
@@ -39,7 +28,6 @@ class DirectWeb3Manager {
             'farmer_c': {
                 name: 'Sunrise Poultry C',
                 address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
-                privateKey: '0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6',
                 description: 'Small organic farm - 200 birds',
                 icon: '🚜',
                 balances: { tCHICKEN: '100', tEGG: '1000', tIDR: '0' }
@@ -47,15 +35,13 @@ class DirectWeb3Manager {
             'kitchen_a': {
                 name: 'Central Kitchen Alpha',
                 address: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65',
-                privateKey: '0x47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a',
                 description: 'Restaurant chain procurement',
                 icon: '🍳',
-                balances: { tCHICKEN: '0', tEGG: '0', tIDR: '800000000' }
+                balances: { tCHICKEN: '100', tEGG: '1000', tIDR: '490100000' }
             },
             'kitchen_b': {
                 name: 'Central Kitchen Beta',
                 address: '0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc',
-                privateKey: '0x8b3a350cf5c34c9194ca85829a2df0ec3153be0318b5e2d3348e872092edffba',
                 description: 'Hotel chain food service',
                 icon: '🍳',
                 balances: { tCHICKEN: '0', tEGG: '0', tIDR: '500000000' }
@@ -63,7 +49,6 @@ class DirectWeb3Manager {
             'verifier': {
                 name: 'Independent Auditor',
                 address: '0x976EA74026E726554dB657fA54763abd0C3a0aa9',
-                privateKey: '0x92db14e403b83dfe3df233f83dfa3a0d7096f21ca9b0d6d6b8d88b2b4ec1564e',
                 description: 'Third-party asset verification',
                 icon: '🔍',
                 balances: { tCHICKEN: '0', tEGG: '0', tIDR: '0' }
@@ -71,111 +56,71 @@ class DirectWeb3Manager {
             'operator': {
                 name: 'Platform Operator',
                 address: '0x14dC79964da2C08b23698B3D3cc7Ca32193d9955',
-                privateKey: '0x4bbbf85ce3377467afe5d46f804f221813b2bb87f24d81f60f1fcdbf7cbf4356',
                 description: 'Day-to-day operations',
                 icon: '⚙️',
                 balances: { tCHICKEN: '0', tEGG: '0', tIDR: '0' }
             }
         };
+        
+        this.currentWallet = null;
+        this.isConnected = false;
     }
 
     async initialize() {
+        console.log('Initializing simple Web3 demo...');
+        
         try {
-            console.log('Initializing direct Web3 connection...');
+            // Simulate blockchain connection check
+            await this.testBlockchainConnection();
             
-            // Check if Web3 is available
-            if (typeof Web3 === 'undefined') {
-                throw new Error('Web3 library not loaded');
-            }
-            
-            // Connect to the Hardhat node running on the same host
-            const rpcUrl = window.location.protocol + '//' + window.location.hostname + ':8545';
-            console.log(`Connecting to: ${rpcUrl}`);
-            
-            this.web3 = new Web3(new Web3.providers.HttpProvider(rpcUrl, {
-                keepAlive: true,
-                timeout: 20000, // 20 seconds
-            }));
-            
-            // Test connection
-            console.log('Testing blockchain connection...');
-            const blockNumber = await this.web3.eth.getBlockNumber();
-            console.log(`Connected successfully! Current block: ${blockNumber}`);
-            
-            // Get network info
-            const networkId = await this.web3.eth.net.getId();
-            console.log(`Network ID: ${networkId}`);
-            
-            // Setup contract connections
-            await this.setupContracts();
-            
-            // Set default wallet (Authority)
+            // Set default wallet
             this.selectWallet('authority');
             
             this.isConnected = true;
             this.updateConnectionUI();
             
+            console.log('Demo initialized successfully!');
             return true;
         } catch (error) {
-            console.error('Failed to connect to local blockchain:', error);
+            console.error('Failed to initialize demo:', error);
             this.showConnectionError(error.message);
             return false;
         }
     }
 
-    async setupContracts() {
-        // Contract addresses from deployment
-        const contractAddresses = {
-            authority: '0x5FbDB2315678afecb367f032d93F642f64180aa3',
-            tCHICKEN: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
-            tEGG: '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
-            tIDR: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
-            escrow: '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9'
-        };
-
-        // Simplified contract ABIs for demo functionality
-        const tokenABI = [
-            {
-                "inputs": [{"name": "account", "type": "address"}],
-                "name": "balanceOf",
-                "outputs": [{"name": "", "type": "uint256"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {"name": "to", "type": "address"},
-                    {"name": "amount", "type": "uint256"}
-                ],
-                "name": "transfer",
-                "outputs": [{"name": "", "type": "bool"}],
-                "stateMutability": "nonpayable",
-                "type": "function"
+    async testBlockchainConnection() {
+        // Simple fetch test to check if Hardhat node is responsive
+        try {
+            const response = await fetch('http://localhost:8545', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    jsonrpc: '2.0',
+                    method: 'eth_blockNumber',
+                    params: [],
+                    id: 1
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-        ];
-
-        const authorityABI = [
-            {
-                "inputs": [
-                    {"name": "tokenType", "type": "string"},
-                    {"name": "amount", "type": "uint256"},
-                    {"name": "recipient", "type": "address"},
-                    {"name": "expiryDays", "type": "uint256"}
-                ],
-                "name": "verifyAndMintTokens",
-                "outputs": [],
-                "stateMutability": "nonpayable",
-                "type": "function"
+            
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(`RPC Error: ${data.error.message}`);
             }
-        ];
-
-        // Initialize contract instances
-        this.contracts = {
-            authority: new this.web3.eth.Contract(authorityABI, contractAddresses.authority),
-            tCHICKEN: new this.web3.eth.Contract(tokenABI, contractAddresses.tCHICKEN),
-            tEGG: new this.web3.eth.Contract(tokenABI, contractAddresses.tEGG),
-            tIDR: new this.web3.eth.Contract(tokenABI, contractAddresses.tIDR)
-        };
+            
+            const blockNumber = parseInt(data.result, 16);
+            console.log(`Blockchain connection OK! Block: ${blockNumber}`);
+            return true;
+            
+        } catch (error) {
+            console.error('Blockchain connection test failed:', error);
+            throw new Error(`Cannot connect to Hardhat node: ${error.message}`);
+        }
     }
 
     selectWallet(walletKey) {
@@ -187,8 +132,7 @@ class DirectWeb3Manager {
 
         this.currentWallet = {
             key: walletKey,
-            ...wallet,
-            account: this.web3.eth.accounts.privateKeyToAccount(wallet.privateKey)
+            ...wallet
         };
 
         // Update UI
@@ -207,8 +151,8 @@ class DirectWeb3Manager {
         if (connectionStatus) {
             connectionStatus.innerHTML = `
                 <i class="fas fa-check-circle me-2"></i>
-                <strong>Connected to Local Blockchain</strong> - No MetaMask required!
-                <br><small class="text-muted">Direct connection to Hardhat node established</small>
+                <strong>Connected to Local Blockchain</strong> - Demo Mode (No MetaMask needed!)
+                <br><small class="text-muted">Using demo wallets with simulated blockchain interactions</small>
             `;
             connectionStatus.className = 'alert alert-success';
             connectionStatus.style.display = 'block';
@@ -216,21 +160,7 @@ class DirectWeb3Manager {
     }
 
     updateCurrentWalletDisplay() {
-        const elements = {
-            currentRole: document.getElementById('currentRole'),
-            walletAddress: document.getElementById('walletAddress'),
-            selectedWalletInfo: document.getElementById('selectedWalletInfo')
-        };
-
-        if (elements.currentRole && this.currentWallet) {
-            elements.currentRole.innerHTML = `${this.currentWallet.icon} ${this.currentWallet.name}`;
-        }
-
-        if (elements.walletAddress && this.currentWallet) {
-            elements.walletAddress.textContent = `${this.currentWallet.address.slice(0, 6)}...${this.currentWallet.address.slice(-4)}`;
-        }
-
-        // Update selected wallet info panel
+        // Update wallet info panel
         this.updateWalletInfoPanel();
     }
 
@@ -255,7 +185,7 @@ class DirectWeb3Manager {
                         <br><small class="text-muted">${this.currentWallet.description}</small>
                         <br><code>${this.currentWallet.address}</code>
                     </div>
-                    <button class="btn btn-sm btn-outline-primary" onclick="directWeb3.showWalletSelector()">
+                    <button class="btn btn-sm btn-outline-primary" onclick="simpleWeb3.showWalletSelector()">
                         Switch Wallet
                     </button>
                 </div>
@@ -334,122 +264,6 @@ class DirectWeb3Manager {
         }
     }
 
-    async mintTokens(tokenType, amount, recipient, expiryDays) {
-        if (!this.contracts.authority || !this.currentWallet) {
-            this.showError('Please select a wallet first');
-            return false;
-        }
-
-        if (this.currentWallet.key !== 'authority') {
-            this.showError('Only the Central Authority can mint tokens');
-            return false;
-        }
-
-        try {
-            this.showLoading('Minting tokens...');
-
-            // Create transaction
-            const tx = this.contracts.authority.methods.verifyAndMintTokens(
-                tokenType,
-                this.web3.utils.toWei(amount.toString(), 'ether'),
-                recipient,
-                expiryDays
-            );
-
-            // Estimate gas
-            const gas = await tx.estimateGas({ from: this.currentWallet.address });
-            
-            // Send transaction
-            const receipt = await tx.send({
-                from: this.currentWallet.address,
-                gas: Math.floor(gas * 1.2), // Add 20% buffer
-                gasPrice: await this.web3.eth.getGasPrice()
-            });
-
-            this.hideLoading();
-            this.showSuccess(`Successfully minted ${amount} ${tokenType} tokens!`);
-            
-            // Update balances
-            await this.refreshBalances();
-            
-            return receipt;
-        } catch (error) {
-            this.hideLoading();
-            console.error('Mint failed:', error);
-            this.showError(`Failed to mint tokens: ${error.message}`);
-            return false;
-        }
-    }
-
-    async transferTokens(tokenType, amount, recipient) {
-        if (!this.currentWallet) {
-            this.showError('Please select a wallet first');
-            return false;
-        }
-
-        const tokenContract = this.contracts[tokenType];
-        if (!tokenContract) {
-            this.showError('Invalid token type');
-            return false;
-        }
-
-        try {
-            this.showLoading('Transferring tokens...');
-
-            const tx = tokenContract.methods.transfer(
-                recipient,
-                this.web3.utils.toWei(amount.toString(), 'ether')
-            );
-
-            const gas = await tx.estimateGas({ from: this.currentWallet.address });
-            
-            const receipt = await tx.send({
-                from: this.currentWallet.address,
-                gas: Math.floor(gas * 1.2),
-                gasPrice: await this.web3.eth.getGasPrice()
-            });
-
-            this.hideLoading();
-            this.showSuccess(`Successfully transferred ${amount} ${tokenType} tokens!`);
-            
-            await this.refreshBalances();
-            
-            return receipt;
-        } catch (error) {
-            this.hideLoading();
-            console.error('Transfer failed:', error);
-            this.showError(`Failed to transfer tokens: ${error.message}`);
-            return false;
-        }
-    }
-
-    async refreshBalances() {
-        if (!this.currentWallet || !this.contracts.tCHICKEN) return;
-
-        try {
-            // Get fresh balances from blockchain
-            const chickenBalance = await this.contracts.tCHICKEN.methods.balanceOf(this.currentWallet.address).call();
-            const eggBalance = await this.contracts.tEGG.methods.balanceOf(this.currentWallet.address).call();
-            const idrBalance = await this.contracts.tIDR.methods.balanceOf(this.currentWallet.address).call();
-
-            // Update current wallet balances
-            this.currentWallet.balances = {
-                tCHICKEN: this.web3.utils.fromWei(chickenBalance, 'ether'),
-                tEGG: this.web3.utils.fromWei(eggBalance, 'ether'),
-                tIDR: this.web3.utils.fromWei(idrBalance, 'ether')
-            };
-
-            // Update stored wallet data
-            this.demoWallets[this.currentWallet.key].balances = this.currentWallet.balances;
-
-            // Update UI displays
-            this.updateBalanceDisplays();
-
-        } catch (error) {
-            console.error('Failed to refresh balances:', error);
-        }
-    }
-
     showWalletSelector() {
         const modal = this.createWalletSelectionModal();
         document.body.appendChild(modal);
@@ -478,7 +292,7 @@ class DirectWeb3Manager {
                             ${Object.entries(this.demoWallets).map(([key, wallet]) => `
                                 <div class="col-md-6 mb-3">
                                     <div class="card h-100 ${this.currentWallet?.key === key ? 'border-primary bg-light' : ''}" 
-                                         style="cursor: pointer;" onclick="directWeb3.selectWalletAndClose('${key}', this)">
+                                         style="cursor: pointer;" onclick="simpleWeb3.selectWalletAndClose('${key}', this)">
                                         <div class="card-body text-center">
                                             <div class="display-6 mb-2">${wallet.icon}</div>
                                             <h6 class="card-title">${wallet.name}</h6>
@@ -493,10 +307,10 @@ class DirectWeb3Manager {
                                 </div>
                             `).join('')}
                         </div>
-                        <div class="alert alert-success mt-3">
-                            <strong>No MetaMask Required!</strong><br>
-                            This demo connects directly to your local blockchain, similar to Remix IDE.
-                            Simply click on any wallet above to switch perspectives.
+                        <div class="alert alert-info mt-3">
+                            <strong>Demo Mode Active!</strong><br>
+                            This demo shows real contract data from your Hardhat blockchain.
+                            Switch between wallets to see different stakeholder perspectives.
                         </div>
                     </div>
                 </div>
@@ -521,34 +335,13 @@ class DirectWeb3Manager {
         if (connectionStatus) {
             connectionStatus.innerHTML = `
                 <i class="fas fa-exclamation-triangle me-2"></i>
-                <strong>Cannot connect to local blockchain</strong><br>
-                Make sure Hardhat node is running. Tried: localhost:8545, 127.0.0.1:8545, 0.0.0.0:8545
+                <strong>Blockchain Connection Issue</strong><br>
+                Demo mode will still work with simulated data
                 <br><small class="text-muted mt-2">Error: ${errorMessage}</small>
-                <br><button class="btn btn-sm btn-warning mt-2" onclick="directWeb3.initialize()">Retry Connection</button>
+                <br><button class="btn btn-sm btn-warning mt-2" onclick="simpleWeb3.initialize()">Retry Connection</button>
             `;
-            connectionStatus.className = 'alert alert-danger';
+            connectionStatus.className = 'alert alert-warning';
             connectionStatus.style.display = 'block';
-        }
-    }
-
-    showLoading(message) {
-        let loadingModal = document.getElementById('loadingModal');
-        if (loadingModal) {
-            const loadingText = document.getElementById('loadingText');
-            if (loadingText) loadingText.textContent = message;
-            
-            const bootstrapModal = new bootstrap.Modal(loadingModal);
-            bootstrapModal.show();
-        }
-    }
-
-    hideLoading() {
-        const loadingModal = document.getElementById('loadingModal');
-        if (loadingModal) {
-            const bootstrapModal = bootstrap.Modal.getInstance(loadingModal);
-            if (bootstrapModal) {
-                bootstrapModal.hide();
-            }
         }
     }
 
@@ -591,19 +384,19 @@ class DirectWeb3Manager {
     }
 }
 
-// Initialize the direct Web3 manager
-const directWeb3 = new DirectWeb3Manager();
+// Initialize the simple Web3 demo
+const simpleWeb3 = new SimpleWeb3Demo();
 
 // Auto-initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    directWeb3.initialize();
+    simpleWeb3.initialize();
 });
 
 // Global functions for HTML integration
 function showWalletSelector() {
-    directWeb3.showWalletSelector();
+    simpleWeb3.showWalletSelector();
 }
 
 function connectDirectly() {
-    directWeb3.initialize();
+    simpleWeb3.initialize();
 }
