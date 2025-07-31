@@ -148,8 +148,10 @@ const translations = {
         
         // Connection Status
         connection: {
-            not_connected: "Tidak terhubung ke Web3. Silakan hubungkan dompet Anda.",
+            not_connected: "Tidak terhubung ke blockchain lokal. Klik untuk terhubung langsung (tidak perlu MetaMask).",
             connect_wallet: "Hubungkan Dompet",
+            connect_direct: "Hubungkan ke Blockchain Lokal",
+            select_role: "Pilih Dompet Demo",
             connected: "Terhubung ke Web3",
             account: "Akun"
         },
@@ -274,9 +276,10 @@ const translations = {
         
         // Connection and Wallet
         connection: {
-            not_connected: "Tidak terhubung ke Web3. Silakan hubungkan dompet Anda.",
+            not_connected: "Tidak terhubung ke blockchain lokal. Klik untuk terhubung langsung (tidak perlu MetaMask).",
             connect_wallet: "Hubungkan Dompet",
-            select_role: "Pilih Peran Demo"
+            connect_direct: "Hubungkan ke Blockchain Lokal",
+            select_role: "Pilih Dompet Demo"
         }
     }
 };

@@ -55,9 +55,10 @@
     <div class="container mt-3">
         <div id="connectionStatus" class="alert alert-warning" role="alert">
             <i class="fas fa-exclamation-triangle me-2"></i>
-            <span id="statusText" data-i18n="connection.not_connected">Not connected to Web3. Please connect your wallet.</span>
-            <button id="connectWallet" class="btn btn-sm btn-outline-dark ms-3" onclick="connectWallet()" data-i18n="connection.connect_wallet">Connect Wallet</button>
-            <button class="btn btn-sm btn-info ms-2" onclick="showWalletSelector()" data-i18n="connection.select_role">Select Demo Role</button>
+            <span id="statusText" data-i18n="connection.not_connected">Not connected to local blockchain. Click to connect directly (no MetaMask needed).</span>
+            <button class="btn btn-sm btn-success ms-3" onclick="connectDirectly()" data-i18n="connection.connect_direct">Connect to Local Blockchain</button>
+            <button class="btn btn-sm btn-primary ms-2" onclick="showWalletSelector()" data-i18n="connection.select_role">Select Demo Wallet</button>
+            <small class="text-muted ms-2">No MetaMask required!</small>
         </div>
     </div>
 
@@ -943,7 +944,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script src="js/translations.js"></script>
-    <script src="js/wallet.js"></script>
+    <script src="js/direct-web3.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
