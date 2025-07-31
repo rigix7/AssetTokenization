@@ -268,7 +268,15 @@ const translations = {
             try_again: "Terjadi kesalahan. Silakan coba lagi.",
             close: "Tutup",
             submit: "Kirim",
-            cancel: "Batal"
+            cancel: "Batal",
+            connect_wallet: "Hubungkan Dompet"
+        },
+        
+        // Connection and Wallet
+        connection: {
+            not_connected: "Tidak terhubung ke Web3. Silakan hubungkan dompet Anda.",
+            connect_wallet: "Hubungkan Dompet",
+            select_role: "Pilih Peran Demo"
         }
     }
 };
