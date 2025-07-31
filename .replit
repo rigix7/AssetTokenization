@@ -19,6 +19,10 @@ args = "Web Interface"
 task = "workflow.run"
 args = "Hardhat Node"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Deploy Contracts"
+
 [[workflows.workflow]]
 name = "Web Interface"
 author = "agent"
@@ -37,6 +41,14 @@ task = "shell.exec"
 args = "npx hardhat node --hostname 0.0.0.0 --port 8545"
 waitForPort = 8545
 
+[[workflows.workflow]]
+name = "Deploy Contracts"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx hardhat run scripts/deploy-and-setup.ts --network localhost"
+
 [[ports]]
 localPort = 3000
 externalPort = 3000
@@ -52,3 +64,6 @@ externalPort = 8080
 [[ports]]
 localPort = 8545
 externalPort = 3001
+
+[deployment]
+deploymentTarget = "cloudrun"
