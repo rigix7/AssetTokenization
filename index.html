@@ -3,68 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agricultural Asset Tokenization Platform - Demo</title>
+    <title>Agricultural Asset Tokenization Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+        }
         .wallet-card {
             cursor: pointer;
             transition: all 0.3s ease;
-        }
-        .wallet-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         .wallet-card.active {
             border: 2px solid #0d6efd;
             background: linear-gradient(135deg, #f8f9ff 0%, #e3f2fd 100%);
         }
-        .contract-section {
+        .section-card {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-            border-radius: 12px;
-            border: 1px solid #e9ecef;
         }
-        .demo-badge {
+        .balance-badge {
             background: linear-gradient(45deg, #28a745, #20c997);
             color: white;
             border-radius: 20px;
-            padding: 4px 12px;
-            font-size: 0.8em;
+            padding: 6px 12px;
+            font-weight: 500;
         }
-        .balance-card {
-            background: linear-gradient(135deg, #fff 0%, #f1f3f4 100%);
-            border-left: 4px solid #0d6efd;
+        .navbar {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
         }
-        .tx-status {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1050;
+        .demo-connection {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body class="bg-light">
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
-        <div class="container">
-            <span class="navbar-brand">
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand fw-bold">
                 <i class="fas fa-seedling me-2"></i>
-                Agricultural Asset Tokenization
+                Agricultural Asset Tokenization Platform
             </span>
-            <div class="navbar-nav ms-auto">
-                <span class="demo-badge">Demo Mode</span>
+            <div class="navbar-nav">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-globe me-1"></i><span id="currentLang">EN</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="changeLanguage('en')">🇺🇸 English</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="changeLanguage('id')">🇮🇩 Bahasa Indonesia</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- Connection Status -->
+    <!-- Demo Connection Status -->
     <div class="container mt-3">
-        <div id="connectionAlert" class="alert alert-info" role="alert">
-            <div class="d-flex align-items-center">
-                <div class="spinner-border spinner-border-sm me-3" role="status"></div>
-                <div>
-                    <strong>Connecting to Hardhat Network...</strong>
-                    <br><small>Testing blockchain connection at localhost:8545</small>
+        <div id="connectionStatus" class="demo-connection">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <div class="spinner-border spinner-border-sm" role="status"></div>
+                </div>
+                <div class="col">
+                    <strong>Connecting to Local Blockchain...</strong>
+                    <br><small>Testing connection to Hardhat node at localhost:8545</small>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-light btn-sm" onclick="connectToBlockchain()" data-i18n="connection.connect_direct">
+                        Connect Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Wallet Selection -->
+    <div class="container mt-4">
+        <div class="card section-card shadow">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-wallet me-2 text-primary"></i>
+                    <span data-i18n="wallet.select_demo_role">Select Demo Role</span>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row" id="walletGrid">
+                    <!-- Wallets will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selected Wallet Info -->
+    <div id="selectedWalletInfo" class="container mt-4" style="display: none;">
+        <div class="card section-card shadow">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h6 class="mb-1" id="currentWalletName"></h6>
+                        <small class="text-muted" id="currentWalletAddress"></small>
+                        <br><small class="text-muted" id="currentWalletDesc"></small>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <div class="balance-badge">
+                                    <div id="chickenBalance">0</div>
+                                    <small>🐔 tCHICKEN</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="balance-badge">
+                                    <div id="eggBalance">0</div>
+                                    <small>🥚 tEGG</small>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="balance-badge">
+                                    <div id="idrBalance">0</div>
+                                    <small>💰 tIDR</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -72,175 +143,200 @@
 
     <!-- Main Content -->
     <div class="container mt-4">
-        <!-- Wallet Selection -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card contract-section shadow-sm">
+        <div class="row">
+            <!-- Dashboard -->
+            <div id="dashboard" class="col-12 mb-4">
+                <div class="card section-card shadow">
                     <div class="card-header bg-white">
                         <h5 class="mb-0">
-                            <i class="fas fa-wallet me-2 text-primary"></i>
-                            Demo Wallets - Select Role
+                            <i class="fas fa-chart-line me-2 text-success"></i>
+                            <span data-i18n="dashboard.platform_statistics">Platform Statistics</span>
                         </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row" id="walletGrid">
-                            <!-- Wallet cards will be populated by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Selected Wallet Info -->
-        <div id="selectedWalletInfo" class="row mb-4" style="display: none;">
-            <div class="col-12">
-                <div class="card balance-card shadow-sm">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <h6 class="mb-1" id="currentWalletName"></h6>
-                                <small class="text-muted" id="currentWalletAddress"></small>
-                                <br><small class="text-muted" id="currentWalletDesc"></small>
-                            </div>
-                            <div class="col-md-4 text-end">
-                                <div class="row text-center">
-                                    <div class="col-4">
-                                        <div class="fw-bold" id="chickenBalance">0</div>
-                                        <small class="text-muted">🐔 tCHICKEN</small>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="fw-bold" id="eggBalance">0</div>
-                                        <small class="text-muted">🥚 tEGG</small>
-                                    </div>
-                                    <div class="col-4">
-                                        <div class="fw-bold" id="idrBalance">0</div>
-                                        <small class="text-muted">💰 tIDR</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Smart Contract Interactions -->
-        <div id="contractInteractions" class="row" style="display: none;">
-            <!-- Token Minting (Authority Only) -->
-            <div class="col-lg-6 mb-4">
-                <div class="card contract-section shadow-sm h-100">
-                    <div class="card-header bg-white">
-                        <h6 class="mb-0">
-                            <i class="fas fa-coins me-2 text-success"></i>
-                            Mint Tokens
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <form id="mintForm">
-                            <div class="mb-3">
-                                <label class="form-label">Token Type</label>
-                                <select class="form-select" id="mintTokenType" required>
-                                    <option value="">Select Token</option>
-                                    <option value="tCHICKEN">🐔 tCHICKEN (30 days expiry)</option>
-                                    <option value="tEGG">🥚 tEGG (14 days expiry)</option>
-                                    <option value="tIDR">💰 tIDR (90 days expiry)</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Amount</label>
-                                <input type="number" class="form-control" id="mintAmount" 
-                                       placeholder="Enter amount" min="1" step="1" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Recipient</label>
-                                <select class="form-select" id="mintRecipient" required>
-                                    <option value="">Select Recipient</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-success w-100">
-                                <i class="fas fa-plus-circle me-2"></i>Mint Tokens
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Token Transfer -->
-            <div class="col-lg-6 mb-4">
-                <div class="card contract-section shadow-sm h-100">
-                    <div class="card-header bg-white">
-                        <h6 class="mb-0">
-                            <i class="fas fa-exchange-alt me-2 text-primary"></i>
-                            Transfer Tokens
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <form id="transferForm">
-                            <div class="mb-3">
-                                <label class="form-label">Token Type</label>
-                                <select class="form-select" id="transferTokenType" required>
-                                    <option value="">Select Token</option>
-                                    <option value="tCHICKEN">🐔 tCHICKEN</option>
-                                    <option value="tEGG">🥚 tEGG</option>
-                                    <option value="tIDR">💰 tIDR</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Amount</label>
-                                <input type="number" class="form-control" id="transferAmount" 
-                                       placeholder="Enter amount" min="1" step="1" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">To Address</label>
-                                <select class="form-select" id="transferRecipient" required>
-                                    <option value="">Select Recipient</option>
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="fas fa-paper-plane me-2"></i>Transfer Tokens
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Contract Information -->
-            <div class="col-12 mb-4">
-                <div class="card contract-section shadow-sm">
-                    <div class="card-header bg-white">
-                        <h6 class="mb-0">
-                            <i class="fas fa-info-circle me-2 text-info"></i>
-                            Deployed Contracts
-                        </h6>
                     </div>
                     <div class="card-body">
                         <div class="row text-center">
                             <div class="col-md-3 mb-3">
-                                <div class="border rounded p-3">
-                                    <i class="fas fa-crown fa-2x text-warning mb-2"></i>
-                                    <h6>Central Authority</h6>
-                                    <small class="text-muted" id="authorityAddress">Loading...</small>
+                                <div class="p-3 bg-light rounded">
+                                    <h3 class="text-primary mb-1">0</h3>
+                                    <small class="text-muted" data-i18n="dashboard.total_minted">Total Minted</small>
                                 </div>
                             </div>
                             <div class="col-md-3 mb-3">
-                                <div class="border rounded p-3">
-                                    <i class="fas fa-drumstick-bite fa-2x text-danger mb-2"></i>
-                                    <h6>tCHICKEN Token</h6>
-                                    <small class="text-muted" id="chickenAddress">Loading...</small>
+                                <div class="p-3 bg-light rounded">
+                                    <h3 class="text-success mb-1">0M</h3>
+                                    <small class="text-muted" data-i18n="dashboard.budget_allocation">Budget Allocation</small>
                                 </div>
                             </div>
                             <div class="col-md-3 mb-3">
-                                <div class="border rounded p-3">
-                                    <i class="fas fa-egg fa-2x text-warning mb-2"></i>
-                                    <h6>tEGG Token</h6>
-                                    <small class="text-muted" id="eggAddress">Loading...</small>
+                                <div class="p-3 bg-light rounded">
+                                    <h3 class="text-info mb-1">0</h3>
+                                    <small class="text-muted" data-i18n="dashboard.escrow_trade">Escrow Transactions</small>
                                 </div>
                             </div>
                             <div class="col-md-3 mb-3">
-                                <div class="border rounded p-3">
-                                    <i class="fas fa-dollar-sign fa-2x text-success mb-2"></i>
-                                    <h6>tIDR Token</h6>
-                                    <small class="text-muted" id="idrAddress">Loading...</small>
+                                <div class="p-3 bg-light rounded">
+                                    <h3 class="text-warning mb-1">Ready</h3>
+                                    <small class="text-muted" data-i18n="dashboard.completed">Status</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authority Section -->
+            <div id="authority" class="col-12 mb-4" style="display: none;">
+                <div class="card section-card shadow">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-crown me-2 text-warning"></i>
+                            <span data-i18n="authority.title">Central Authority Dashboard</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 data-i18n="authority.mint_tokens">Mint New Tokens</h6>
+                                <form id="mintForm">
+                                    <div class="mb-3">
+                                        <select class="form-select" id="mintTokenType" required>
+                                            <option value="">Select Token Type</option>
+                                            <option value="tCHICKEN">🐔 tCHICKEN (30 days expiry)</option>
+                                            <option value="tEGG">🥚 tEGG (14 days expiry)</option>
+                                            <option value="tIDR">💰 tIDR (90 days expiry)</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="number" class="form-control" id="mintAmount" 
+                                               placeholder="Amount to mint" min="1" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <select class="form-select" id="mintRecipient" required>
+                                            <option value="">Select Recipient</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-plus-circle me-2"></i>Mint Tokens
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 data-i18n="authority.contract_info">Contract Information</h6>
+                                <div class="small">
+                                    <div class="mb-2">
+                                        <strong>Central Authority:</strong><br>
+                                        <code id="authorityAddress">Loading...</code>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Token Contracts:</strong><br>
+                                        <code id="tokenAddresses">Loading...</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Farmer Section -->
+            <div id="farmer" class="col-12 mb-4" style="display: none;">
+                <div class="card section-card shadow">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tractor me-2 text-success"></i>
+                            <span data-i18n="farmers.title">Farmer Dashboard</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 data-i18n="farmers.transfer_assets">Transfer Assets</h6>
+                                <form id="transferForm">
+                                    <div class="mb-3">
+                                        <select class="form-select" id="transferTokenType" required>
+                                            <option value="">Select Asset Type</option>
+                                            <option value="tCHICKEN">🐔 Chickens</option>
+                                            <option value="tEGG">🥚 Eggs</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="number" class="form-control" id="transferAmount" 
+                                               placeholder="Quantity to transfer" min="1" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <select class="form-select" id="transferRecipient" required>
+                                            <option value="">Select Recipient</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane me-2"></i>Transfer Assets
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 data-i18n="farmers.my_assets">My Assets</h6>
+                                <div class="row text-center">
+                                    <div class="col-6 mb-3">
+                                        <div class="p-3 bg-light rounded">
+                                            <h4 class="text-danger mb-1" id="farmerChickenBalance">0</h4>
+                                            <small class="text-muted">🐔 Chickens</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 mb-3">
+                                        <div class="p-3 bg-light rounded">
+                                            <h4 class="text-warning mb-1" id="farmerEggBalance">0</h4>
+                                            <small class="text-muted">🥚 Eggs</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kitchen Section -->
+            <div id="kitchen" class="col-12 mb-4" style="display: none;">
+                <div class="card section-card shadow">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-utensils me-2 text-info"></i>
+                            <span data-i18n="kitchen.title">Kitchen Dashboard</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 data-i18n="kitchen.purchase_assets">Purchase Assets</h6>
+                                <form id="purchaseForm">
+                                    <div class="mb-3">
+                                        <select class="form-select" id="purchaseTokenType" required>
+                                            <option value="">Select Asset Type</option>
+                                            <option value="tCHICKEN">🐔 Chickens</option>
+                                            <option value="tEGG">🥚 Eggs</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <input type="number" class="form-control" id="purchaseAmount" 
+                                               placeholder="Quantity to purchase" min="1" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <select class="form-select" id="purchaseSupplier" required>
+                                            <option value="">Select Supplier</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-shopping-cart me-2"></i>Place Order
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 data-i18n="kitchen.budget_status">Budget Status</h6>
+                                <div class="text-center">
+                                    <div class="p-3 bg-light rounded">
+                                        <h4 class="text-success mb-1" id="kitchenBudget">0M</h4>
+                                        <small class="text-muted">💰 Available Budget (IDR)</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -249,9 +345,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Transaction Status Toast -->
-    <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;"></div>
 
     <!-- Loading Modal -->
     <div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true">
@@ -265,9 +358,35 @@
         </div>
     </div>
 
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check-circle me-2"></i>Success
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="successMessage">Operation completed successfully!</p>
+                    <div class="mt-3">
+                        <a id="txHashLink" href="#" target="_blank" class="btn btn-outline-primary">
+                            <i class="fas fa-external-link-alt me-2"></i>View Transaction
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;"></div>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.10.0/dist/web3.min.js"></script>
-    <script src="js/demo-platform.js"></script>
+    <script src="js/translations.js"></script>
+    <script src="js/blockchain-demo.js"></script>
 </body>
 </html>

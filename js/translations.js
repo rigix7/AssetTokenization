@@ -133,7 +133,19 @@ const translations = {
             try_again: "An error occurred. Please try again.",
             close: "Close",
             submit: "Submit",
-            cancel: "Cancel"
+            cancel: "Cancel",
+            connect_wallet: "Connect Wallet"
+        },
+        
+        connection: {
+            not_connected: "Not connected to local blockchain. Click to connect directly (no MetaMask needed).",
+            connect_wallet: "Connect Wallet",
+            connect_direct: "Connect Now",
+            select_role: "Select Demo Role"
+        },
+        
+        wallet: {
+            select_demo_role: "Select Demo Role"
         }
     },
     
@@ -278,8 +290,13 @@ const translations = {
         connection: {
             not_connected: "Tidak terhubung ke blockchain lokal. Klik untuk terhubung langsung (tidak perlu MetaMask).",
             connect_wallet: "Hubungkan Dompet",
-            connect_direct: "Hubungkan ke Blockchain Lokal",
+            connect_direct: "Hubungkan Sekarang",
             select_role: "Pilih Dompet Demo"
+        },
+        
+        // Wallet
+        wallet: {
+            select_demo_role: "Pilih Peran Demo"
         }
     }
 };
