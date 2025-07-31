@@ -4,7 +4,7 @@
 
 This is a comprehensive blockchain-based platform for tokenizing real-world agricultural assets, built using Hardhat, Solidity, and web technologies. The platform enables the tokenization of physical agricultural assets (like chickens, eggs, and other farm products) and facilitates secure trading through smart contracts with built-in compliance and escrow mechanisms.
 
-**Current Status**: The platform is fully operational with enhanced smart contracts featuring comprehensive expiry date functionality for perishable assets. All tokens (tCHICKEN, tEGG, and tIDR) now include expiry parameters - chickens expire in 30 days, eggs in 14 days, and tIDR budget tokens in 90 days. A complete end-to-end transaction has been executed demonstrating the entire workflow from asset verification to escrow trading with expiry enforcement.
+**Current Status**: The platform is fully operational with enhanced smart contracts featuring comprehensive expiry date functionality for perishable assets. All tokens (tCHICKEN, tEGG, and tIDR) now include expiry parameters - chickens expire in 30 days, eggs in 14 days, and tIDR budget tokens in 90 days. The web interface has been redesigned into three distinct user segments (Farmers, Kitchens, Authority) for effective stakeholder demonstrations. Automated demo setup ensures consistent presentation experience despite local blockchain resets.
 
 ## User Preferences
 
