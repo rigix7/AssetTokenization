@@ -665,9 +665,9 @@ class BlockchainDemo {
                     // Use enhanced order fetching
                     const order = await this.getOrderData(i);
                     
-                    // Check if this order belongs to current wallet and is not completed/cancelled
+                    // Check if this order belongs to current wallet and is not cancelled (show completed orders too)
                     if (order && order.buyer && order.buyer.toLowerCase() === this.currentWallet.address.toLowerCase() && 
-                        !order.completed && !order.cancelled) {
+                        !order.cancelled) {
                         
                         // Get asset token details from order data
                         let assetType = 'Unknown';
@@ -697,6 +697,8 @@ class BlockchainDemo {
                             supplier: order.seller,
                             paymentDeposited: order.paymentDeposited,
                             assetsDelivered: order.assetsDelivered,
+                            completed: order.completed,
+                            cancelled: order.cancelled,
                             expirationTime: order.expirationTime
                         });
                     }
@@ -708,7 +710,7 @@ class BlockchainDemo {
 
             // Update UI
             if (orders.length === 0) {
-                activeOrdersList.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No active orders</td></tr>';
+                activeOrdersList.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No orders found</td></tr>';
             } else {
                 activeOrdersList.innerHTML = orders.map(order => {
                     const status = this.getOrderStatus(order);
@@ -735,18 +737,28 @@ class BlockchainDemo {
     }
 
     getOrderStatus(order) {
-        if (!order.assetsDelivered) {
-            return { text: 'Payment Secured - Awaiting Delivery', class: 'bg-info' };
+        if (order.completed) {
+            return { text: 'Completed', class: 'bg-success' };
+        } else if (order.cancelled) {
+            return { text: 'Cancelled', class: 'bg-danger' };
+        } else if (order.assetsDelivered) {
+            return { text: 'Delivered - Ready for Verification', class: 'bg-info' };
+        } else if (order.paymentDeposited) {
+            return { text: 'Payment Secured - Awaiting Delivery', class: 'bg-warning' };
         } else {
-            return { text: 'Assets Delivered - Ready for Verification', class: 'bg-success' };
+            return { text: 'Payment Pending', class: 'bg-secondary' };
         }
     }
 
     getOrderActions(order) {
-        if (order.assetsDelivered) {
-            return `<button class="btn btn-sm btn-success" onclick="window.demoApp.verifyOrder(${order.id})">Verify & Complete Order</button>`;
+        if (order.completed || order.cancelled) {
+            return '<span class="text-muted">-</span>';
+        } else if (order.assetsDelivered) {
+            return `<button class="btn btn-sm btn-success" onclick="window.demoApp.verifyOrder(${order.id})">
+                <i class="fas fa-check-circle me-1"></i>Verify & Complete
+            </button>`;
         } else {
-            return '<span class="text-muted"><i class="fas fa-clock me-1"></i>Waiting for supplier delivery</span>';
+            return '<span class="text-muted"><i class="fas fa-clock me-1"></i>Waiting for delivery</span>';
         }
     }
 
@@ -795,9 +807,9 @@ class BlockchainDemo {
                     // Parse the hex data manually to avoid automatic BigNumber conversion
                     const order = this.parseOrderDataSafely(orderData);
                     
-                    // Check if this order belongs to current wallet as seller and is not completed/cancelled
+                    // Check if this order belongs to current wallet as seller and is not cancelled (show completed orders too)
                     if (order && order.seller && order.seller.toLowerCase() === this.currentWallet.address.toLowerCase() && 
-                        !order.completed && !order.cancelled) {
+                        !order.cancelled) {
                         
                         // Get asset token details
                         let assetType = 'Unknown';
@@ -821,6 +833,8 @@ class BlockchainDemo {
                             buyer: order.buyer,
                             paymentDeposited: order.paymentDeposited,
                             assetsDelivered: order.assetsDelivered,
+                            completed: order.completed,
+                            cancelled: order.cancelled,
                             expirationTime: order.expirationTime
                         });
                     }
@@ -832,7 +846,7 @@ class BlockchainDemo {
 
             // Update UI
             if (orders.length === 0) {
-                farmerOrdersList.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No active orders</td></tr>';
+                farmerOrdersList.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No orders found</td></tr>';
             } else {
                 farmerOrdersList.innerHTML = orders.map(order => {
                     const status = this.getFarmerOrderStatus(order);
@@ -862,15 +876,23 @@ class BlockchainDemo {
     }
 
     getFarmerOrderStatus(order) {
-        if (!order.assetsDelivered) {
-            return { text: 'Payment Secured - Ready to Deliver', class: 'bg-success' };
+        if (order.completed) {
+            return { text: 'Completed', class: 'bg-success' };
+        } else if (order.cancelled) {
+            return { text: 'Cancelled', class: 'bg-danger' };
+        } else if (order.assetsDelivered) {
+            return { text: 'Delivered - Awaiting Verification', class: 'bg-info' };
+        } else if (order.paymentDeposited) {
+            return { text: 'Payment Secured - Ready to Deliver', class: 'bg-warning' };
         } else {
-            return { text: 'Assets Delivered - Awaiting Verification', class: 'bg-primary' };
+            return { text: 'Payment Pending', class: 'bg-secondary' };
         }
     }
 
     getFarmerOrderActions(order) {
-        if (!order.assetsDelivered) {
+        if (order.completed || order.cancelled) {
+            return '<span class="text-muted">-</span>';
+        } else if (!order.assetsDelivered) {
             return `<button class="btn btn-sm btn-success" onclick="window.demoApp.deliverAssets(${order.id})">
                 <i class="fas fa-truck me-1"></i>Deliver Assets
             </button>`;
