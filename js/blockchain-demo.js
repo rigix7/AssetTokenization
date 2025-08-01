@@ -542,12 +542,6 @@ class BlockchainDemo {
         if (!this.currentWallet || !this.isConnected) return;
 
         try {
-            // For farmers, always show 0 balances in UI
-            if (this.currentWallet.type === 'farmer') {
-                this.updateBalanceDisplays('0', '0', '0');
-                return;
-            }
-
             const chickenBalance = await this.contracts.tCHICKEN.methods.balanceOf(this.currentWallet.address).call();
             const eggBalance = await this.contracts.tEGG.methods.balanceOf(this.currentWallet.address).call();
             const idrBalance = await this.contracts.tIDR.methods.balanceOf(this.currentWallet.address).call();
@@ -574,14 +568,8 @@ class BlockchainDemo {
         document.getElementById('idrBalance').textContent = this.formatNumber(idr);
 
         // Update section-specific displays
-        // For farmers, always show 0 regardless of actual balance
-        if (this.currentWallet && this.currentWallet.type === 'farmer') {
-            document.getElementById('farmerChickenBalance').textContent = '0';
-            document.getElementById('farmerEggBalance').textContent = '0';
-        } else {
-            document.getElementById('farmerChickenBalance').textContent = this.formatNumber(chicken);
-            document.getElementById('farmerEggBalance').textContent = this.formatNumber(egg);
-        }
+        document.getElementById('farmerChickenBalance').textContent = this.formatNumber(chicken);
+        document.getElementById('farmerEggBalance').textContent = this.formatNumber(egg);
         document.getElementById('kitchenBudget').textContent = this.formatNumber(parseFloat(idr) / 1000000) + 'M';
         
         // Update active orders for kitchen users
