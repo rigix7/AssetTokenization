@@ -1451,7 +1451,6 @@ class BlockchainDemo {
 
             // Remove '0x' prefix
             const hex = orderData.slice(2);
-            console.log(`Parsing order data, total hex length: ${hex.length}`);
             
             // Each field is 32 bytes (64 hex chars)
             const fieldSize = 64;
@@ -1459,21 +1458,17 @@ class BlockchainDemo {
 
             const parseAddress = (hexData, position) => {
                 const addressHex = hexData.substr(position, fieldSize);
-                console.log(`Address at offset ${position}: ${addressHex}`);
                 return '0x' + addressHex.slice(24); // Take last 20 bytes for address
             };
 
             const parseUint256 = (hexData, position) => {
                 const numberHex = hexData.substr(position, fieldSize);
-                console.log(`Uint256 at offset ${position}: ${numberHex}`);
                 return '0x' + numberHex;
             };
 
             const parseBool = (hexData, position) => {
                 const boolHex = hexData.substr(position, fieldSize);
-                const result = parseInt(boolHex.slice(-1), 16) === 1;
-                console.log(`Bool at offset ${position}: ${boolHex} = ${result}`);
-                return result;
+                return parseInt(boolHex.slice(-1), 16) === 1;
             };
 
             // CORRECTED Order struct fields (from contract):
@@ -1489,17 +1484,14 @@ class BlockchainDemo {
 
             // The arrays are encoded differently - for this simple case they appear to be empty
             // so we see: arrayPointer1, arrayPointer2, then actual fields
-            console.log(`Parsing dynamic arrays, offset before: ${offset}`);
             const arrayPointer1 = parseUint256(hex, offset); offset += fieldSize;
             const arrayPointer2 = parseUint256(hex, offset); offset += fieldSize;
-            console.log(`Array pointers: ${arrayPointer1}, ${arrayPointer2}`);
             
             // Now we're at the actual order data
-            console.log(`Starting order fields at offset: ${offset}`);
             const paymentAmount = parseUint256(hex, offset); offset += fieldSize;
             const expirationTime = parseUint256(hex, offset); offset += fieldSize;
             
-            console.log(`Starting boolean parsing at offset: ${offset}`);
+            // Parse boolean fields
             const paymentDeposited = parseBool(hex, offset); offset += fieldSize;
             const assetsDelivered = parseBool(hex, offset); offset += fieldSize;
             const buyerVerified = parseBool(hex, offset); offset += fieldSize;
@@ -2008,6 +2000,126 @@ class BlockchainDemo {
             console.error('Delivery failed:', error);
             this.showToast(`Failed to deliver assets: ${error.message}`, 'error');
         }
+    }
+
+    async updateKitchenOrders() {
+        if (!this.currentWallet || this.currentWallet.type !== 'kitchen' || !this.currentWallet.address) {
+            console.log('Kitchen orders update skipped - wallet not ready:', this.currentWallet);
+            return;
+        }
+
+        try {
+            const orderCounter = await this.contracts.escrow.methods.orderCounter().call();
+            const kitchenOrdersList = document.getElementById('kitchenOrdersList');
+            const orders = [];
+
+            // Check each order to see if it belongs to current kitchen (as buyer)
+            for (let i = 0; i < parseInt(orderCounter); i++) {
+                try {
+                    // Use enhanced order fetching
+                    const order = await this.getOrderData(i);
+                    
+                    console.log(`DEBUG: Kitchen checking order ${i}:`, {
+                        orderExists: !!order,
+                        orderBuyer: order?.buyer,
+                        currentWallet: this.currentWallet?.address,
+                        orderPaymentDeposited: order?.paymentDeposited,
+                        orderAssetsDelivered: order?.assetsDelivered,
+                        orderCompleted: order?.completed,
+                        orderCancelled: order?.cancelled,
+                        addressesMatch: order?.buyer?.toLowerCase() === this.currentWallet?.address?.toLowerCase(),
+                        willShowOrder: order && order.buyer && this.currentWallet && this.currentWallet.address && 
+                                      order.buyer.toLowerCase() === this.currentWallet.address.toLowerCase() && 
+                                      !order.cancelled
+                    });
+                    
+                    // Check if this order belongs to current kitchen as buyer and is not cancelled
+                    if (order && order.buyer && this.currentWallet && this.currentWallet.address && 
+                        order.buyer.toLowerCase() === this.currentWallet.address.toLowerCase() && 
+                        !order.cancelled) {
+                        
+                        // Get asset token details from order data
+                        let assetType = 'Unknown';
+                        let quantity = '0';
+                        
+                        if (order.assetType) {
+                            // Use stored asset type from order
+                            if (order.assetType === 'tCHICKEN') assetType = '🐔 Chickens';
+                            else if (order.assetType === 'tEGG') assetType = '🥚 Eggs';
+                            quantity = order.quantity || '0';
+                        }
+                        
+                        // Get supplier name
+                        const supplierName = this.getSupplierName(order.seller);
+                        
+                        orders.push({
+                            id: i,
+                            assetType,
+                            quantity,
+                            totalPayment: order.totalCost || '0',
+                            supplier: supplierName,
+                            seller: order.seller,
+                            paymentDeposited: order.paymentDeposited,
+                            assetsDelivered: order.assetsDelivered,
+                            completed: order.completed,
+                            cancelled: order.cancelled
+                        });
+                    }
+                } catch (orderError) {
+                    console.log(`Error parsing kitchen order ${i}:`, orderError.message);
+                    continue;
+                }
+            }
+
+            // Update UI
+            if (orders.length === 0) {
+                kitchenOrdersList.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No orders found</td></tr>';
+            } else {
+                kitchenOrdersList.innerHTML = orders.map(order => {
+                    const status = this.getKitchenOrderStatus(order);
+                    return `
+                        <tr>
+                            <td>#${order.id}</td>
+                            <td>${order.assetType}</td>
+                            <td>${this.formatNumber(order.quantity)}</td>
+                            <td>${this.formatNumber(order.totalPayment)} tIDR</td>
+                            <td>${order.supplier}</td>
+                            <td><span class="badge ${status.class}">${status.text}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+        } catch (error) {
+            console.error('Failed to update kitchen orders:', error);
+            const kitchenOrdersList = document.getElementById('kitchenOrdersList');
+            if (kitchenOrdersList) {
+                kitchenOrdersList.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading orders</td></tr>';
+            }
+        }
+    }
+
+    getKitchenOrderStatus(order) {
+        if (order.completed) {
+            return { text: 'Completed', class: 'bg-success' };
+        } else if (order.cancelled) {
+            return { text: 'Cancelled', class: 'bg-danger' };
+        } else if (order.assetsDelivered) {
+            return { text: 'Delivered', class: 'bg-info' };
+        } else if (order.paymentDeposited) {
+            return { text: 'Awaiting Delivery', class: 'bg-warning' };
+        } else {
+            return { text: 'Payment Pending', class: 'bg-secondary' };
+        }
+    }
+
+    getSupplierName(address) {
+        const suppliers = {
+            [this.demoWallets.farmer_a.address.toLowerCase()]: 'Happy Farm Supplier A',
+            [this.demoWallets.farmer_b.address.toLowerCase()]: 'Green Valley Farm B',  
+            [this.demoWallets.farmer_c.address.toLowerCase()]: 'Sunrise Poultry C'
+        };
+        return suppliers[address.toLowerCase()] || this.formatAddress(address);
     }
 
     getCustomerName(address) {
