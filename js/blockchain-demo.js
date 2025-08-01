@@ -1567,7 +1567,10 @@ class BlockchainDemo {
 
 
     async updateFarmerOrders() {
-        if (!this.currentWallet || this.currentWallet.type !== 'farmer') return;
+        if (!this.currentWallet || this.currentWallet.type !== 'farmer' || !this.currentWallet.address) {
+            console.log('Farmer orders update skipped - wallet not ready:', this.currentWallet);
+            return;
+        }
 
         try {
             const orderCounter = await this.contracts.escrow.methods.orderCounter().call();
@@ -1581,7 +1584,7 @@ class BlockchainDemo {
                     const order = await this.getOrderData(i);
                     
                     // Check if this order is for current farmer and payment is deposited but assets not delivered
-                    if (order && order.seller.toLowerCase() === this.currentWallet.address.toLowerCase() && 
+                    if (order && order.seller && order.seller.toLowerCase() === this.currentWallet.address.toLowerCase() && 
                         order.paymentDeposited && !order.assetsDelivered && !order.completed && !order.cancelled) {
                         
                         // Get asset token details from order data
