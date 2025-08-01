@@ -1583,8 +1583,16 @@ class BlockchainDemo {
                     // Use enhanced order fetching
                     const order = await this.getOrderData(i);
                     
+                    console.log(`DEBUG: Checking order ${i}:`, {
+                        orderExists: !!order,
+                        orderSeller: order?.seller,
+                        currentWallet: this.currentWallet?.address,
+                        orderPaymentDeposited: order?.paymentDeposited
+                    });
+                    
                     // Check if this order is for current farmer and payment is deposited but assets not delivered
-                    if (order && order.seller && order.seller.toLowerCase() === this.currentWallet.address.toLowerCase() && 
+                    if (order && order.seller && this.currentWallet && this.currentWallet.address && 
+                        order.seller.toLowerCase() === this.currentWallet.address.toLowerCase() && 
                         order.paymentDeposited && !order.assetsDelivered && !order.completed && !order.cancelled) {
                         
                         // Get asset token details from order data
