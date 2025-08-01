@@ -233,57 +233,62 @@ class BlockchainDemo {
     }
 
     async setupContracts() {
-        // Token ABI for balance, transfer, and approval operations
-        const tokenABI = [
-            {
-                "inputs": [{"name": "account", "type": "address"}],
-                "name": "balanceOf",
-                "outputs": [{"name": "", "type": "uint256"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {"name": "to", "type": "address"},
-                    {"name": "amount", "type": "uint256"}
-                ],
-                "name": "transfer",
-                "outputs": [{"name": "", "type": "bool"}],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {"name": "spender", "type": "address"},
-                    {"name": "amount", "type": "uint256"}
-                ],
-                "name": "approve",
-                "outputs": [{"name": "", "type": "bool"}],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {"name": "owner", "type": "address"},
-                    {"name": "spender", "type": "address"}
-                ],
-                "name": "allowance",
-                "outputs": [{"name": "", "type": "uint256"}],
-                "stateMutability": "view",
-                "type": "function"
-            },
-            {
-                "inputs": [
-                    {"name": "from", "type": "address"},
-                    {"name": "to", "type": "address"},
-                    {"name": "amount", "type": "uint256"}
-                ],
-                "name": "transferFrom",
-                "outputs": [{"name": "", "type": "bool"}],
-                "stateMutability": "nonpayable",
-                "type": "function"
-            }
-        ];
+        // Load the full SimpleAgricultureToken ABI from artifacts
+        let tokenABI;
+        try {
+            const response = await fetch('/artifacts/contracts/SimpleAgricultureToken.sol/SimpleAgricultureToken.json');
+            const artifact = await response.json();
+            tokenABI = artifact.abi;
+        } catch (error) {
+            console.error('Failed to load contract ABI, using fallback ABI', error);
+            // Fallback minimal ABI including burnOwnAssets
+            tokenABI = [
+                {
+                    "inputs": [{"name": "account", "type": "address"}],
+                    "name": "balanceOf",
+                    "outputs": [{"name": "", "type": "uint256"}],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [{"name": "to", "type": "address"}, {"name": "amount", "type": "uint256"}],
+                    "name": "transfer",
+                    "outputs": [{"name": "", "type": "bool"}],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [{"name": "spender", "type": "address"}, {"name": "amount", "type": "uint256"}],
+                    "name": "approve",
+                    "outputs": [{"name": "", "type": "bool"}],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [{"name": "owner", "type": "address"}, {"name": "spender", "type": "address"}],
+                    "name": "allowance",
+                    "outputs": [{"name": "", "type": "uint256"}],
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+                {
+                    "inputs": [{"name": "from", "type": "address"}, {"name": "to", "type": "address"}, {"name": "amount", "type": "uint256"}],
+                    "name": "transferFrom",
+                    "outputs": [{"name": "", "type": "bool"}],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                },
+                {
+                    "inputs": [{"name": "amount", "type": "uint256"}, {"name": "reason", "type": "string"}],
+                    "name": "burnOwnAssets",
+                    "outputs": [],
+                    "stateMutability": "nonpayable",
+                    "type": "function"
+                }
+            ];
+        }
+
+
 
         // Authority ABI for minting
         const authorityABI = [

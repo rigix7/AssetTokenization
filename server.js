@@ -56,6 +56,7 @@ app.get('/contract-addresses.json', (req, res) => {
 
 // Serve static files from the root directory
 app.use(express.static('.'));
+app.use('/artifacts', express.static('artifacts'));
 
 // Main route
 app.get('/', (req, res) => {
