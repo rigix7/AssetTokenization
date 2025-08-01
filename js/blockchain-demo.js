@@ -1446,6 +1446,102 @@ class BlockchainDemo {
             this.showToast('Failed to refresh contract connection', 'error');
         }
     }
+
+    async redeployContracts() {
+        console.log('Triggering contract redeploy...');
+        
+        // Disable the redeploy button to prevent multiple clicks
+        const redeployBtn = document.getElementById('redeployBtn');
+        const originalHTML = redeployBtn.innerHTML;
+        redeployBtn.disabled = true;
+        redeployBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Deploying...';
+        
+        // Show loading state
+        document.getElementById('statusSpinner').style.display = 'inline-block';
+        document.getElementById('statusIcon').style.display = 'none';
+        document.getElementById('statusText').innerHTML = '<strong>Redeploying Contracts...</strong><br><small class="text-muted">This may take 30-60 seconds</small>';
+        
+        try {
+            // Trigger the Clean Deploy workflow
+            const response = await fetch('/api/redeploy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Deployment failed: ${response.statusText}`);
+            }
+            
+            const result = await response.json();
+            console.log('Deployment triggered:', result);
+            
+            // Poll for deployment completion
+            await this.waitForDeploymentCompletion();
+            
+            // Reload contract addresses
+            await this.loadContractAddresses();
+            
+            // Reconnect to blockchain and setup contracts
+            await this.connectToBlockchain();
+            
+            // Update status
+            await this.updateContractStatus();
+            
+            // Refresh balances if wallet is selected
+            if (this.currentWallet) {
+                await this.refreshBalances();
+            }
+            
+            this.showToast('Contracts redeployed successfully!', 'success');
+            
+        } catch (error) {
+            console.error('Redeploy failed:', error);
+            this.showToast(`Failed to redeploy contracts: ${error.message}`, 'error');
+        } finally {
+            // Re-enable the redeploy button
+            redeployBtn.disabled = false;
+            redeployBtn.innerHTML = originalHTML;
+        }
+    }
+
+    async waitForDeploymentCompletion() {
+        console.log('Waiting for deployment to complete...');
+        
+        const maxAttempts = 30; // 30 attempts = ~60 seconds with 2-second intervals
+        let attempts = 0;
+        
+        while (attempts < maxAttempts) {
+            try {
+                // Check if new contract addresses are available
+                const response = await fetch('/contract-addresses.json?t=' + Date.now());
+                if (response.ok) {
+                    const addresses = await response.json();
+                    const deployedAt = new Date(addresses.deployedAt);
+                    const now = new Date();
+                    
+                    // If deployment is recent (within last 2 minutes), consider it complete
+                    if (now - deployedAt < 120000) {
+                        console.log('Deployment detected as complete');
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.log('Still waiting for deployment...', error.message);
+            }
+            
+            // Update status message to show progress
+            const dots = '.'.repeat((attempts % 3) + 1);
+            document.getElementById('statusText').innerHTML = `<strong>Redeploying Contracts${dots}</strong><br><small class="text-muted">This may take 30-60 seconds (${attempts + 1}/${maxAttempts})</small>`;
+            
+            // Wait 2 seconds before next check
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            attempts++;
+        }
+        
+        console.log('Deployment timeout reached, proceeding anyway');
+    }
     
     startStatusUpdates() {
         // Update status immediately

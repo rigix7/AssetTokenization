@@ -42,6 +42,57 @@ app.post('/blockchain', async (req, res) => {
     }
 });
 
+// Redeploy contracts endpoint
+app.post('/api/redeploy', async (req, res) => {
+    try {
+        console.log('Triggering contract redeploy...');
+        
+        const { spawn } = require('child_process');
+        
+        // Trigger the Clean Deploy workflow
+        const deployment = spawn('npx', ['hardhat', 'run', 'scripts/deploy-clean.ts', '--network', 'localhost'], {
+            cwd: __dirname,
+            detached: false
+        });
+        
+        let deployOutput = '';
+        let deployError = '';
+        
+        deployment.stdout.on('data', (data) => {
+            deployOutput += data.toString();
+            console.log('Deploy output:', data.toString());
+        });
+        
+        deployment.stderr.on('data', (data) => {
+            deployError += data.toString();
+            console.error('Deploy error:', data.toString());
+        });
+        
+        deployment.on('close', (code) => {
+            if (code === 0) {
+                console.log('Deployment completed successfully');
+            } else {
+                console.error(`Deployment failed with exit code ${code}`);
+            }
+        });
+        
+        // Don't wait for completion, just acknowledge the trigger
+        res.json({ 
+            success: true, 
+            message: 'Contract redeploy triggered successfully',
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('Redeploy trigger error:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Failed to trigger redeploy', 
+            details: error.message 
+        });
+    }
+});
+
 // Serve contract addresses if available
 app.get('/contract-addresses.json', (req, res) => {
     const fs = require('fs');
