@@ -1517,18 +1517,45 @@ class BlockchainDemo {
                 return this.localOrders.get(orderId);
             }
             
-            // Query the actual contract for real order status
-            const contractOrder = await this.contracts.escrow.methods.orders(orderId).call();
+            // Use raw contract calls to avoid BigNumber overflow issues completely
+            const escrowAddress = this.contractAddresses.escrow;
+            const orderMethodSignature = '0xa85c38ef'; // orders(uint256) method signature
+            const paddedOrderId = this.web3.utils.padLeft(this.web3.utils.toHex(orderId), 64);
             
-            // Handle potential BigNumber overflow issues
-            let orderData = {
-                buyer: contractOrder.buyer,
-                seller: contractOrder.seller,
-                paymentDeposited: contractOrder.paymentDeposited,
-                assetsDelivered: contractOrder.assetsDelivered,
-                completed: contractOrder.completed,
-                cancelled: contractOrder.cancelled
-            };
+            const rawResult = await this.web3.eth.call({
+                to: escrowAddress,
+                data: orderMethodSignature + paddedOrderId.slice(2)
+            });
+            
+            let orderData;
+            if (rawResult && rawResult !== '0x' && rawResult.length >= 450) {
+                // Parse the response - Solidity struct returns data in 32-byte chunks
+                // Each field is 64 hex chars (32 bytes), starting after '0x'
+                const buyer = '0x' + rawResult.slice(26, 66);
+                const seller = '0x' + rawResult.slice(90, 130);
+                
+                // Boolean fields - check last character of each 32-byte chunk
+                // paymentDeposited is at position 7 (index 2 + 7*64 = 450)
+                const paymentDeposited = rawResult.slice(450, 514).slice(-1) === '1';
+                // assetsDelivered is at position 8 (index 2 + 8*64 = 514)
+                const assetsDelivered = rawResult.slice(514, 578).slice(-1) === '1';
+                // completed is at position 12 (index 2 + 12*64 = 770)
+                const completed = rawResult.slice(770, 834).slice(-1) === '1';
+                // cancelled is at position 13 (index 2 + 13*64 = 834)
+                const cancelled = rawResult.slice(834, 898).slice(-1) === '1';
+                
+                orderData = {
+                    buyer,
+                    seller,
+                    paymentDeposited,
+                    assetsDelivered,
+                    completed,
+                    cancelled
+                };
+            } else {
+                // No valid data returned
+                return null;
+            }
 
             // Skip invalid/empty orders (when buyer is zero address)
             if (!orderData.buyer || orderData.buyer === '0x0000000000000000000000000000000000000000') {
