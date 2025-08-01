@@ -378,20 +378,26 @@ class BlockchainDemo {
                 ],
                 "name": "orders",
                 "outputs": [
-                    {"name": "buyer", "type": "address"},
-                    {"name": "seller", "type": "address"},
-                    {"name": "paymentToken", "type": "address"},
-                    {"name": "assetTokens", "type": "address[]"},
-                    {"name": "assetAmounts", "type": "uint256[]"},
-                    {"name": "paymentAmount", "type": "uint256"},
-                    {"name": "expirationTime", "type": "uint256"},
-                    {"name": "paymentDeposited", "type": "bool"},
-                    {"name": "assetsDelivered", "type": "bool"},
-                    {"name": "buyerVerified", "type": "bool"},
-                    {"name": "sellerVerified", "type": "bool"},
-                    {"name": "authorityVerified", "type": "bool"},
-                    {"name": "completed", "type": "bool"},
-                    {"name": "cancelled", "type": "bool"}
+                    {
+                        "components": [
+                            {"name": "buyer", "type": "address"},
+                            {"name": "seller", "type": "address"},
+                            {"name": "paymentToken", "type": "address"},
+                            {"name": "assetTokens", "type": "address[]"},
+                            {"name": "assetAmounts", "type": "uint256[]"},
+                            {"name": "paymentAmount", "type": "uint256"},
+                            {"name": "expirationTime", "type": "uint256"},
+                            {"name": "paymentDeposited", "type": "bool"},
+                            {"name": "assetsDelivered", "type": "bool"},
+                            {"name": "buyerVerified", "type": "bool"},
+                            {"name": "sellerVerified", "type": "bool"},
+                            {"name": "authorityVerified", "type": "bool"},
+                            {"name": "completed", "type": "bool"},
+                            {"name": "cancelled", "type": "bool"}
+                        ],
+                        "name": "",
+                        "type": "tuple"
+                    }
                 ],
                 "stateMutability": "view",
                 "type": "function"
@@ -649,7 +655,24 @@ class BlockchainDemo {
             // Check each order to see if it belongs to current wallet and is incomplete
             for (let i = 0; i < parseInt(orderCounter); i++) {
                 try {
-                    const order = await this.contracts.escrow.methods.orders(i).call();
+                    const orderResult = await this.contracts.escrow.methods.orders(i).call();
+                    // Handle struct return properly
+                    const order = {
+                        buyer: orderResult[0] || orderResult.buyer,
+                        seller: orderResult[1] || orderResult.seller,
+                        paymentToken: orderResult[2] || orderResult.paymentToken,
+                        assetTokens: orderResult[3] || orderResult.assetTokens,
+                        assetAmounts: orderResult[4] || orderResult.assetAmounts,
+                        paymentAmount: orderResult[5] || orderResult.paymentAmount,
+                        expirationTime: orderResult[6] || orderResult.expirationTime,
+                        paymentDeposited: orderResult[7] || orderResult.paymentDeposited,
+                        assetsDelivered: orderResult[8] || orderResult.assetsDelivered,
+                        buyerVerified: orderResult[9] || orderResult.buyerVerified,
+                        sellerVerified: orderResult[10] || orderResult.sellerVerified,
+                        authorityVerified: orderResult[11] || orderResult.authorityVerified,
+                        completed: orderResult[12] || orderResult.completed,
+                        cancelled: orderResult[13] || orderResult.cancelled
+                    };
                     
                     // Check if this order belongs to current wallet and is not completed/cancelled
                     if (order.buyer.toLowerCase() === this.currentWallet.address.toLowerCase() && 
@@ -1262,7 +1285,24 @@ class BlockchainDemo {
             // Check each order to see if it belongs to current farmer and needs delivery
             for (let i = 0; i < parseInt(orderCounter); i++) {
                 try {
-                    const order = await this.contracts.escrow.methods.orders(i).call();
+                    const orderResult = await this.contracts.escrow.methods.orders(i).call();
+                    // Handle struct return properly
+                    const order = {
+                        buyer: orderResult[0] || orderResult.buyer,
+                        seller: orderResult[1] || orderResult.seller,
+                        paymentToken: orderResult[2] || orderResult.paymentToken,
+                        assetTokens: orderResult[3] || orderResult.assetTokens,
+                        assetAmounts: orderResult[4] || orderResult.assetAmounts,
+                        paymentAmount: orderResult[5] || orderResult.paymentAmount,
+                        expirationTime: orderResult[6] || orderResult.expirationTime,
+                        paymentDeposited: orderResult[7] || orderResult.paymentDeposited,
+                        assetsDelivered: orderResult[8] || orderResult.assetsDelivered,
+                        buyerVerified: orderResult[9] || orderResult.buyerVerified,
+                        sellerVerified: orderResult[10] || orderResult.sellerVerified,
+                        authorityVerified: orderResult[11] || orderResult.authorityVerified,
+                        completed: orderResult[12] || orderResult.completed,
+                        cancelled: orderResult[13] || orderResult.cancelled
+                    };
                     
                     // Check if this order is for current farmer and payment is deposited but assets not delivered
                     if (order.seller.toLowerCase() === this.currentWallet.address.toLowerCase() && 
