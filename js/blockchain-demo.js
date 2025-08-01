@@ -354,6 +354,13 @@ class BlockchainDemo {
                 ],
                 "stateMutability": "view",
                 "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "orderCounter",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
             }
         ];
 
@@ -788,48 +795,19 @@ class BlockchainDemo {
                 gas: Math.floor(gas * 1.2)
             });
 
-            // Get the order ID from the receipt - improved extraction
-            let orderId = null;
-            console.log('Transaction receipt:', receipt);
-            console.log('Receipt logs:', receipt.logs);
+            // Get the order ID using orderCounter (more reliable approach)
+            console.log('Getting order ID from contract state...');
             
-            if (receipt.events && receipt.events.OrderCreated) {
-                orderId = receipt.events.OrderCreated.returnValues.orderId;
-                console.log('Order ID from events:', orderId);
-            } else if (receipt.logs && receipt.logs.length > 0) {
-                // Parse logs manually - OrderCreated event signature
-                const eventSignature = this.web3.utils.keccak256('OrderCreated(uint256,address,address)');
-                console.log('Looking for event signature:', eventSignature);
-                
-                for (const log of receipt.logs) {
-                    console.log('Log details:', {
-                        address: log.address,
-                        topics: log.topics,
-                        data: log.data
-                    });
-                    
-                    if (log.topics && log.topics[0] === eventSignature) {
-                        // OrderCreated(uint256 indexed orderId, address indexed buyer, address indexed seller)
-                        // orderId is the first indexed parameter (topics[1])
-                        orderId = this.web3.utils.hexToNumber(log.topics[1]);
-                        console.log('Order ID from logs:', orderId);
-                        break;
-                    }
-                }
-                
-                // If still not found, try to decode from log data
-                if (orderId === null && receipt.logs.length > 0) {
-                    // The order ID might be the return value from createOrder
-                    // Let's use the orderCounter logic - assume it's the transaction index or sequential
-                    orderId = receipt.blockNumber - 1; // Simple fallback
-                    console.log('Using fallback order ID:', orderId);
-                }
-            }
+            // The order was just created, so the current orderCounter - 1 is our order ID
+            const currentCounter = await this.contracts.escrow.methods.orderCounter().call();
+            const orderId = parseInt(currentCounter) - 1; // Last created order
             
-            if (orderId === null) {
-                console.error('Failed to extract order ID from receipt');
-                console.log('Full receipt structure:', JSON.stringify(receipt, null, 2));
-                throw new Error('Failed to extract order ID');
+            console.log('Current order counter:', currentCounter);
+            console.log('Our order ID:', orderId);
+            
+            if (orderId < 0) {
+                console.error('Invalid order ID calculated');
+                throw new Error('Failed to determine order ID');
             }
 
             // Step 3: Deposit payment
