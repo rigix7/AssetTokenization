@@ -1415,6 +1415,84 @@ class BlockchainDemo {
             document.getElementById('idrAddr').textContent = this.formatAddress(this.contractAddresses.tIDR);
         }
     }
+
+    parseOrderDataSafely(orderData) {
+        try {
+            // Parse the hex response manually to avoid BigInt overflow
+            if (!orderData || orderData === '0x') {
+                return null;
+            }
+
+            // Remove '0x' prefix
+            const hex = orderData.slice(2);
+            
+            // Each field is 32 bytes (64 hex chars)
+            const fieldSize = 64;
+            let offset = 0;
+
+            const parseAddress = (hexData, position) => {
+                const addressHex = hexData.substr(position, fieldSize);
+                return '0x' + addressHex.slice(24); // Take last 20 bytes for address
+            };
+
+            const parseUint256 = (hexData, position) => {
+                const numberHex = hexData.substr(position, fieldSize);
+                return '0x' + numberHex;
+            };
+
+            const parseBool = (hexData, position) => {
+                const boolHex = hexData.substr(position, fieldSize);
+                return parseInt(boolHex.slice(-1), 16) === 1;
+            };
+
+            // Order struct fields (in order of the Solidity struct):
+            // address buyer, address seller, address paymentToken
+            // address[] assetTokens, uint256[] assetAmounts
+            // uint256 paymentAmount, uint256 expirationTime
+            // bool paymentDeposited, bool assetsDelivered, bool buyerVerified
+            // bool sellerVerified, bool authorityVerified, bool completed, bool cancelled
+
+            const buyer = parseAddress(hex, offset); offset += fieldSize;
+            const seller = parseAddress(hex, offset); offset += fieldSize;
+            const paymentToken = parseAddress(hex, offset); offset += fieldSize;
+
+            // Skip dynamic arrays for now (assetTokens, assetAmounts) - complex parsing
+            // We'll add these later if needed
+            offset += fieldSize * 2; // Skip array pointers
+            
+            const paymentAmount = parseUint256(hex, offset); offset += fieldSize;
+            const expirationTime = parseUint256(hex, offset); offset += fieldSize;
+            
+            const paymentDeposited = parseBool(hex, offset); offset += fieldSize;
+            const assetsDelivered = parseBool(hex, offset); offset += fieldSize;
+            const buyerVerified = parseBool(hex, offset); offset += fieldSize;
+            const sellerVerified = parseBool(hex, offset); offset += fieldSize;
+            const authorityVerified = parseBool(hex, offset); offset += fieldSize;
+            const completed = parseBool(hex, offset); offset += fieldSize;
+            const cancelled = parseBool(hex, offset);
+
+            return {
+                buyer,
+                seller,
+                paymentToken,
+                paymentAmount,
+                expirationTime,
+                paymentDeposited,
+                assetsDelivered,
+                buyerVerified,
+                sellerVerified,
+                authorityVerified,
+                completed,
+                cancelled,
+                assetTokens: [], // We'll populate this from local data if needed
+                assetAmounts: []  // We'll populate this from local data if needed
+            };
+
+        } catch (error) {
+            console.error('Error parsing order data safely:', error);
+            return null;
+        }
+    }
     
     async refreshContractConnection() {
         console.log('Refreshing contract connection...');
@@ -1613,8 +1691,23 @@ class BlockchainDemo {
                 return this.localOrders.get(orderId);
             }
             
-            // Query the actual contract for real order status
-            const contractOrder = await this.contracts.escrow.methods.orders(orderId).call();
+            // Query the actual contract for real order status using safe low-level call
+            const orderData = await this.web3.eth.call({
+                to: this.contractAddresses.escrow,
+                data: this.web3.eth.abi.encodeFunctionCall({
+                    name: 'orders',
+                    type: 'function',
+                    inputs: [{'name': 'orderId', 'type': 'uint256'}]
+                }, [orderId])
+            });
+            
+            // Parse the hex data manually to avoid automatic BigNumber conversion
+            const contractOrder = this.parseOrderDataSafely(orderData);
+            
+            // If parsing failed, return null
+            if (!contractOrder) {
+                return null;
+            }
             
             // For demo orders 0 and 1, combine contract status with known demo data
             if (orderId === 0) {
