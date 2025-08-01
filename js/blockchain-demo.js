@@ -1264,13 +1264,39 @@ class BlockchainDemo {
                 throw new Error('Failed to determine order ID');
             }
 
-            // Step 3: Deposit payment
+            // Step 3: Check token balance and approval before deposit
+            console.log('Checking token balance and approval before payment deposit...');
+            const paymentTokenContract = new this.web3.eth.Contract(this.tokenABI, paymentToken);
+            const balance = await paymentTokenContract.methods.balanceOf(account.address).call();
+            const allowance = await paymentTokenContract.methods.allowance(account.address, this.contractAddresses.escrow).call();
+            
+            console.log(`Kitchen balance: ${this.web3.utils.fromWei(balance, 'ether')} tokens`);
+            console.log(`Required payment: ${this.web3.utils.fromWei(totalCostWei, 'ether')} tokens`);
+            console.log(`Current allowance: ${this.web3.utils.fromWei(allowance, 'ether')} tokens`);
+            
+            if (BigInt(balance) < BigInt(totalCostWei)) {
+                throw new Error(`Insufficient token balance. Need ${this.web3.utils.fromWei(totalCostWei, 'ether')} but only have ${this.web3.utils.fromWei(balance, 'ether')}`);
+            }
+            
+            if (BigInt(allowance) < BigInt(totalCostWei)) {
+                console.log('Approving escrow contract to spend tokens...');
+                const approveTx = paymentTokenContract.methods.approve(this.contractAddresses.escrow, totalCostWei);
+                await approveTx.send({
+                    from: account.address,
+                    gas: 100000
+                });
+                console.log('Approval successful');
+            }
+
+            // Step 4: Deposit payment
             console.log('Depositing payment...');
             const depositTx = this.contracts.escrow.methods.depositPayment(orderId);
+            const depositGas = await depositTx.estimateGas({ from: account.address });
             await depositTx.send({
                 from: account.address,
-                gas: 200000
+                gas: Math.floor(depositGas * 1.2)
             });
+            console.log('Payment deposited successfully');
 
             // Store order data locally for accurate display WITH payment status
             this.localOrders.set(orderId, {
