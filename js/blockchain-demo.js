@@ -1811,7 +1811,14 @@ class BlockchainDemo {
                         orderExists: !!order,
                         orderSeller: order?.seller,
                         currentWallet: this.currentWallet?.address,
-                        orderPaymentDeposited: order?.paymentDeposited
+                        orderPaymentDeposited: order?.paymentDeposited,
+                        orderAssetsDelivered: order?.assetsDelivered,
+                        orderCompleted: order?.completed,
+                        orderCancelled: order?.cancelled,
+                        addressesMatch: order?.seller?.toLowerCase() === this.currentWallet?.address?.toLowerCase(),
+                        willShowOrder: order && order.seller && this.currentWallet && this.currentWallet.address && 
+                                      order.seller.toLowerCase() === this.currentWallet.address.toLowerCase() && 
+                                      order.paymentDeposited && !order.assetsDelivered && !order.completed && !order.cancelled
                     });
                     
                     // Check if this order is for current farmer and payment is deposited but assets not delivered
