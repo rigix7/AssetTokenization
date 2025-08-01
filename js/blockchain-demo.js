@@ -1272,6 +1272,22 @@ class BlockchainDemo {
                 gas: 200000
             });
 
+            // Store order data locally for accurate display
+            this.localOrders.set(orderId, {
+                id: orderId,
+                buyer: account.address,
+                seller: supplier,
+                assetType: assetType,
+                quantity: quantity,
+                pricePerUnit: pricePerUnit,
+                totalCost: totalCost,
+                assetTokens: assetTokens,
+                assetAmounts: assetAmounts,
+                paymentAmount: totalCostWei,
+                createdAt: new Date().toISOString(),
+                expirationTime: expirationTime
+            });
+
             this.hideLoading();
             this.showSuccess(
                 `Purchase order created successfully! Order ID: ${orderId}`, 
@@ -1709,53 +1725,51 @@ class BlockchainDemo {
                 return null;
             }
             
-            // For demo orders 0 and 1, combine contract status with known demo data
-            if (orderId === 0) {
-                return {
-                    id: 0,
-                    buyer: contractOrder.buyer || '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', // Kitchen Alpha
-                    seller: contractOrder.seller || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', // Farmer A
-                    assetType: 'tCHICKEN',
-                    quantity: '100',
-                    pricePerUnit: '100000',
-                    totalCost: '10000000',
-                    assetTokens: [this.contractAddresses.tCHICKEN],
-                    assetAmounts: [this.web3.utils.toWei('100', 'ether')],
-                    paymentAmount: this.web3.utils.toWei('10000000', 'ether'),
-                    paymentDeposited: contractOrder.paymentDeposited,
-                    assetsDelivered: contractOrder.assetsDelivered,
-                    completed: contractOrder.completed,
-                    cancelled: contractOrder.cancelled,
-                    createdAt: new Date().toISOString()
-                };
-            } else if (orderId === 1) {
-                return {
-                    id: 1,
-                    buyer: contractOrder.buyer || '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', // Kitchen Alpha
-                    seller: contractOrder.seller || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', // Farmer A
-                    assetType: 'tCHICKEN',
-                    quantity: '50',
-                    pricePerUnit: '100000',
-                    totalCost: '5000000',
-                    assetTokens: [this.contractAddresses.tCHICKEN],
-                    assetAmounts: [this.web3.utils.toWei('50', 'ether')],
-                    paymentAmount: this.web3.utils.toWei('5000000', 'ether'),
-                    paymentDeposited: contractOrder.paymentDeposited,
-                    assetsDelivered: contractOrder.assetsDelivered,
-                    completed: contractOrder.completed,
-                    cancelled: contractOrder.cancelled,
-                    createdAt: new Date().toISOString()
-                };
-            }
-            
-            // For other orders, try to construct from contract data
+            // Use actual contract data for all orders
             if (contractOrder.buyer !== '0x0000000000000000000000000000000000000000') {
+                // Determine asset type from payment token address
+                let assetType = 'Unknown';
+                let quantity = '0';
+                let totalCost = '0';
+                
+                // Extract payment amount safely (avoid BigInt issues)
+                if (contractOrder.paymentAmount && contractOrder.paymentAmount !== '0x0') {
+                    try {
+                        totalCost = this.web3.utils.fromWei(contractOrder.paymentAmount, 'ether');
+                    } catch (e) {
+                        console.warn('Could not parse payment amount:', e);
+                        totalCost = 'Unknown';
+                    }
+                }
+                
+                // Check against known contract addresses to determine asset type
+                if (contractOrder.paymentToken) {
+                    const paymentToken = contractOrder.paymentToken.toLowerCase();
+                    if (paymentToken === this.contractAddresses.tIDR.toLowerCase()) {
+                        // This is an asset purchase order, need to determine what asset was bought
+                        // For now, we'll use the local order data if available, or try to infer
+                        
+                        // Check if we have local order data for this order
+                        if (this.localOrders.has(orderId)) {
+                            const localOrder = this.localOrders.get(orderId);
+                            assetType = localOrder.assetType || 'Unknown';
+                            quantity = localOrder.quantity || '0';
+                            totalCost = localOrder.totalCost || totalCost;
+                        } else {
+                            // Try to infer from recent order creation if this is order 0
+                            // Based on the most recent minting activity
+                            assetType = 'Agricultural Asset'; // Generic fallback
+                        }
+                    }
+                }
+                
                 return {
                     id: orderId,
                     buyer: contractOrder.buyer,
                     seller: contractOrder.seller,
-                    assetType: 'Unknown',
-                    quantity: '0',
+                    assetType: assetType,
+                    quantity: quantity,
+                    totalCost: totalCost,
                     assetTokens: contractOrder.assetTokens || [],
                     assetAmounts: contractOrder.assetAmounts || [],
                     paymentAmount: contractOrder.paymentAmount,
