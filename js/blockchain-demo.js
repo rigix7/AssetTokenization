@@ -1272,7 +1272,7 @@ class BlockchainDemo {
                 gas: 200000
             });
 
-            // Store order data locally for accurate display
+            // Store order data locally for accurate display WITH payment status
             this.localOrders.set(orderId, {
                 id: orderId,
                 buyer: account.address,
@@ -1284,6 +1284,10 @@ class BlockchainDemo {
                 assetTokens: assetTokens,
                 assetAmounts: assetAmounts,
                 paymentAmount: totalCostWei,
+                paymentDeposited: true,  // Payment was just deposited successfully
+                assetsDelivered: false,  // Assets not delivered yet
+                completed: false,        // Order not completed yet
+                cancelled: false,        // Order not cancelled
                 createdAt: new Date().toISOString(),
                 expirationTime: expirationTime
             });
@@ -1297,6 +1301,12 @@ class BlockchainDemo {
             // Reset form and refresh balances
             document.getElementById('purchaseForm').reset();
             await this.refreshBalances();
+            
+            // Force refresh of order displays to show the new order
+            setTimeout(() => {
+                this.updateKitchenOrders();
+                this.updateFarmerOrders();
+            }, 1000);
 
             // Show informational message about next steps
             setTimeout(() => {
@@ -1704,7 +1714,14 @@ class BlockchainDemo {
         try {
             // First check if we have local order data (for newly created orders)
             if (this.localOrders.has(orderId)) {
-                return this.localOrders.get(orderId);
+                const localOrder = this.localOrders.get(orderId);
+                // If local order is missing critical status fields, remove it and query contract instead
+                if (localOrder.paymentDeposited === undefined) {
+                    console.log(`Local order ${orderId} missing status fields, clearing cache...`);
+                    this.localOrders.delete(orderId);
+                } else {
+                    return localOrder;
+                }
             }
             
             // Query the actual contract for real order status using safe low-level call
