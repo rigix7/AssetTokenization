@@ -1668,12 +1668,59 @@ class BlockchainDemo {
         }
 
         try {
-            this.showLoading('Delivering assets...');
+            this.showLoading('Preparing asset delivery...');
 
             const account = this.web3.eth.accounts.privateKeyToAccount(this.currentWallet.privateKey);
             this.web3.eth.accounts.wallet.add(account);
 
-            // Call the deliverAssets function on the escrow contract
+            // First, get the order details to know which tokens and amounts are needed
+            const order = await this.getOrderData(orderId);
+            if (!order || !order.assetTokens || order.assetTokens.length === 0) {
+                throw new Error('Order not found or invalid');
+            }
+
+            // For each asset token, check balance and approve if needed
+            for (let i = 0; i < order.assetTokens.length; i++) {
+                const tokenAddress = order.assetTokens[i];
+                const requiredAmount = order.assetAmounts[i];
+                
+                // Determine which token contract to use
+                let tokenContract;
+                if (tokenAddress.toLowerCase() === this.contractAddresses.tCHICKEN.toLowerCase()) {
+                    tokenContract = this.contracts.tCHICKEN;
+                } else if (tokenAddress.toLowerCase() === this.contractAddresses.tEGG.toLowerCase()) {
+                    tokenContract = this.contracts.tEGG;
+                } else {
+                    console.warn(`Unknown token address: ${tokenAddress}`);
+                    continue;
+                }
+
+                // Check current balance
+                const balance = await tokenContract.methods.balanceOf(account.address).call();
+                if (this.web3.utils.toBN(balance).lt(this.web3.utils.toBN(requiredAmount))) {
+                    throw new Error(`Insufficient ${tokenAddress === this.contractAddresses.tCHICKEN ? 'chicken' : 'egg'} tokens. Need ${this.web3.utils.fromWei(requiredAmount, 'ether')} but have ${this.web3.utils.fromWei(balance, 'ether')}`);
+                }
+
+                // Check current allowance
+                const allowance = await tokenContract.methods.allowance(account.address, this.contractAddresses.escrow).call();
+                if (this.web3.utils.toBN(allowance).lt(this.web3.utils.toBN(requiredAmount))) {
+                    this.showLoading(`Approving ${tokenAddress === this.contractAddresses.tCHICKEN ? 'chicken' : 'egg'} tokens...`);
+                    
+                    // Approve the escrow contract to spend the required amount
+                    const approveTx = tokenContract.methods.approve(this.contractAddresses.escrow, requiredAmount);
+                    const approveGas = await approveTx.estimateGas({ from: account.address });
+                    
+                    await approveTx.send({
+                        from: account.address,
+                        gas: Math.floor(approveGas * 1.2),
+                        gasPrice: await this.web3.eth.getGasPrice()
+                    });
+                }
+            }
+
+            this.showLoading('Delivering assets to escrow...');
+
+            // Now call the deliverAssets function on the escrow contract
             const tx = this.contracts.escrow.methods.deliverAssets(orderId);
             
             const gas = await tx.estimateGas({ from: account.address });
