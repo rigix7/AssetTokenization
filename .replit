@@ -21,10 +21,6 @@ args = "Hardhat Node"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Deploy Contracts"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
 args = "Demo Setup Check"
 
 [[workflows.workflow.tasks]]
@@ -52,14 +48,6 @@ author = "agent"
 task = "shell.exec"
 args = "npx hardhat node --hostname 0.0.0.0 --port 8545"
 waitForPort = 8545
-
-[[workflows.workflow]]
-name = "Deploy Contracts"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx hardhat run scripts/deploy-and-setup.ts --network localhost"
 
 [[workflows.workflow]]
 name = "Demo Setup Check"
