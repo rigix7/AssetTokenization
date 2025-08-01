@@ -744,9 +744,9 @@ class BlockchainDemo {
 
     getOrderActions(order) {
         if (!order.paymentDeposited) {
-            return `<button class="btn btn-sm btn-primary" onclick="window.blockchainDemo.depositPayment(${order.id})">Deposit Payment</button>`;
+            return `<button class="btn btn-sm btn-primary" onclick="window.demoApp.depositPayment(${order.id})">Deposit Payment</button>`;
         } else if (order.assetsDelivered) {
-            return `<button class="btn btn-sm btn-success" onclick="window.blockchainDemo.verifyOrder(${order.id})">Verify Order</button>`;
+            return `<button class="btn btn-sm btn-success" onclick="window.demoApp.verifyOrder(${order.id})">Verify Order</button>`;
         } else {
             return '<span class="text-muted">Waiting for supplier</span>';
         }
@@ -1562,7 +1562,7 @@ class BlockchainDemo {
                             <td>${order.customer}</td>
                             <td><span class="badge bg-warning">Payment Received</span></td>
                             <td>
-                                <button class="btn btn-sm btn-success" onclick="window.blockchainDemo.deliverAssets(${order.id})">
+                                <button class="btn btn-sm btn-success" onclick="window.demoApp.deliverAssets(${order.id})">
                                     <i class="fas fa-truck"></i> Deliver
                                 </button>
                             </td>

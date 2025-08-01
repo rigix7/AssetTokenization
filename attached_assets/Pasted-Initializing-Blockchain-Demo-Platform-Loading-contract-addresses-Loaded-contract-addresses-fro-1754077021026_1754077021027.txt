@@ -1,0 +1,23 @@
+Initializing Blockchain Demo Platform...
+Loading contract addresses...
+Loaded contract addresses from deployment file: 
+Object {authority: "0x68B1D87F95878fE05B998F19b66F4baba5De1aed", tCHICKEN: "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c", tEGG: "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d", tIDR: "0x59b670e9fA9D0A427751Af201D676719a970857b", escrow: "0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1", …}
+Testing blockchain connection...
+HTTP test response status: 200
+HTTP test response data: 
+Object {jsonrpc: "2.0", id: 1, result: "31337"}
+HTTP test successful, initializing Web3...
+Testing Web3 connection...
+Web3 connected to network: 31337
+Current block number: 46
+Setting up contracts...
+Blockchain connection successful!
+Demo platform ready!
+Skipping order 0: overflow [ See: https://links.ethers.org/v5-errors-NUMERIC_FAULT-overflow ] (fault="overflow", operation="toNumber", value="120000000000000000000000", code=NUMERIC_FAULT, version=bignumber/5.7.0)
+Cannot get raw data for order 0: overflow [ See: https://links.ethers.org/v5-errors-NUMERIC_FAULT-overflow ] (fault="overflow", operation="toNumber", value="875734974754274547701265637215306557576585454812", code=NUMERIC_FAULT, version=bignumber/5.7.0)
+Skipping order 1: overflow [ See: https://links.ethers.org/v5-errors-NUMERIC_FAULT-overflow ] (fault="overflow", operation="toNumber", value="50000000000000000000000", code=NUMERIC_FAULT, version=bignumber/5.7.0)
+Cannot get raw data for order 1: overflow [ See: https://links.ethers.org/v5-errors-NUMERIC_FAULT-overflow ] (fault="overflow", operation="toNumber", value="875734974754274547701265637215306557576585454812", code=NUMERIC_FAULT, version=bignumber/5.7.0)
+Skipping order 0: overflow [ See: https://links.ethers.org/v5-errors-NUMERIC_FAULT-overflow ] (fault="overflow", operation="toNumber", value="120000000000000000000000", code=NUMERIC_FAULT, version=bignumber/5.7.0)
+Cannot get raw data for order 0: overflow [ See: https://links.ethers.org/v5-errors-NUMERIC_FAULT-overflow ] (fault="overflow", operation="toNumber", value="875734974754274547701265637215306557576585454812", code=NUMERIC_FAULT, version=bignumber/5.7.0)
+Skipping order 1: overflow [ See: https://links.ethers.org/v5-errors-NUMERIC_FAULT-overflow ] (fault="overflow", operation="toNumber", value="50000000000000000000000", code=NUMERIC_FAULT, version=bignumber/5.7.0)
+Cannot get raw data for order 1: overflow [ See: https://links.ethers.org/v5-errors-NUMERIC_FAULT-overflow ] (fault="overflow", operation="toNumber", value="875734974754274547701265637215306557576585454812", code=NUMERIC_FAULT, version=bignumber/5.7.0)
