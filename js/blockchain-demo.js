@@ -659,18 +659,8 @@ class BlockchainDemo {
             // Check each order to see if it belongs to current wallet and is incomplete
             for (let i = 0; i < parseInt(orderCounter); i++) {
                 try {
-                    // Use low-level call to avoid automatic BigNumber conversion
-                    const orderData = await this.web3.eth.call({
-                        to: this.contractAddresses.escrow,
-                        data: this.web3.eth.abi.encodeFunctionCall({
-                            name: 'orders',
-                            type: 'function',
-                            inputs: [{'name': 'orderId', 'type': 'uint256'}]
-                        }, [i])
-                    });
-                    
-                    // Parse the hex data manually to avoid automatic BigNumber conversion
-                    const order = this.parseOrderDataSafely(orderData);
+                    // Use enhanced order fetching
+                    const order = await this.getOrderData(i);
                     
                     // Check if this order belongs to current wallet and is not completed/cancelled
                     if (order && order.buyer && order.buyer.toLowerCase() === this.currentWallet.address.toLowerCase() && 
@@ -1208,7 +1198,18 @@ class BlockchainDemo {
 
             // Create order parameters
             const paymentToken = this.contractAddresses.tIDR; // Pay with tIDR
-            const assetTokens = [this.contractAddresses[assetType]];
+            
+            // Get the correct asset token address based on selected type
+            let assetTokenAddress;
+            if (assetType === 'tCHICKEN') {
+                assetTokenAddress = this.contractAddresses.tCHICKEN;
+            } else if (assetType === 'tEGG') {
+                assetTokenAddress = this.contractAddresses.tEGG;
+            } else {
+                throw new Error(`Unsupported asset type: ${assetType}`);
+            }
+            
+            const assetTokens = [assetTokenAddress];
             const assetAmounts = [quantityWei];
             const expirationTime = Math.floor(Date.now() / 1000) + (24 * 60 * 60); // 24 hours
 
@@ -1500,79 +1501,36 @@ class BlockchainDemo {
         return parseFloat(num).toLocaleString();
     }
 
-    // Safe parsing function to handle BigNumber overflow issues
-    parseOrderDataSafely(hexData) {
+    // Enhanced order fetching using proper contract calls instead of hex parsing
+    async getOrderData(orderId) {
         try {
-            // Manual hex parsing to completely avoid BigNumber conversion
-            const cleanHex = hexData.startsWith('0x') ? hexData.slice(2) : hexData;
+            // Get order data using multiple contract calls to avoid dynamic array parsing issues
+            const orderResult = await this.contracts.escrow.methods.orders(orderId).call();
             
-            // Parse addresses (first 3 * 32 bytes = 96 hex chars)
-            const buyer = '0x' + cleanHex.slice(24, 64);
-            const seller = '0x' + cleanHex.slice(88, 128);
-            const paymentToken = '0x' + cleanHex.slice(152, 192);
-            
-            // Skip dynamic array parsing for now, use contract addresses directly
-            const assetTokens = [this.contractAddresses.tCHICKEN]; // Default assumption
-            
-            // Parse payment amount (at position 5 * 64 = 320)
-            const paymentAmountHex = cleanHex.slice(320, 384);
-            const paymentAmount = this.hexToBigNumberString(paymentAmountHex);
-            
-            // Parse expiration time (at position 6 * 64 = 384)  
-            const expirationTimeHex = cleanHex.slice(384, 448);
-            const expirationTime = this.hexToBigNumberString(expirationTimeHex);
-            
-            // Parse booleans (positions 7-13, each 32 bytes)
-            const paymentDeposited = parseInt(cleanHex.slice(448, 512), 16) === 1;
-            const assetsDelivered = parseInt(cleanHex.slice(512, 576), 16) === 1;
-            const buyerVerified = parseInt(cleanHex.slice(576, 640), 16) === 1;
-            const sellerVerified = parseInt(cleanHex.slice(640, 704), 16) === 1;
-            const authorityVerified = parseInt(cleanHex.slice(704, 768), 16) === 1;
-            const completed = parseInt(cleanHex.slice(768, 832), 16) === 1;
-            const cancelled = parseInt(cleanHex.slice(832, 896), 16) === 1;
-            
-            // Default asset amounts
-            const assetAmounts = ['100000000000000000000']; // 100 tokens in wei
-            
+            // The result structure matches the Order struct in the contract
             return {
-                buyer,
-                seller,
-                paymentToken,
-                assetTokens,
-                assetAmounts,
-                paymentAmount,
-                expirationTime,
-                paymentDeposited,
-                assetsDelivered,
-                buyerVerified,
-                sellerVerified,
-                authorityVerified,
-                completed,
-                cancelled
+                buyer: orderResult.buyer,
+                seller: orderResult.seller,
+                paymentToken: orderResult.paymentToken,
+                assetTokens: orderResult.assetTokens || [],
+                assetAmounts: orderResult.assetAmounts || [],
+                paymentAmount: orderResult.paymentAmount,
+                expirationTime: orderResult.expirationTime,
+                paymentDeposited: orderResult.paymentDeposited,
+                assetsDelivered: orderResult.assetsDelivered,
+                buyerVerified: orderResult.buyerVerified,
+                sellerVerified: orderResult.sellerVerified,
+                authorityVerified: orderResult.authorityVerified,
+                completed: orderResult.completed,
+                cancelled: orderResult.cancelled
             };
         } catch (error) {
-            console.error('Safe parsing failed:', error);
+            console.error(`Failed to get order ${orderId}:`, error);
             return null;
         }
     }
 
-    // Helper function to convert hex to big number string without overflow
-    hexToBigNumberString(hex) {
-        try {
-            // Remove leading zeros
-            hex = hex.replace(/^0+/, '') || '0';
-            
-            // For very large numbers, use a string-based conversion
-            if (hex.length > 15) { // Larger than safe integer
-                // Use a simplified approach for demo - return a reasonable default
-                return '10000000000000000000000'; // 10,000 tokens in wei
-            }
-            
-            return parseInt(hex, 16).toString();
-        } catch (error) {
-            return '1000000000000000000000'; // 1000 tokens in wei as default
-        }
-    }
+
 
     async updateFarmerOrders() {
         if (!this.currentWallet || this.currentWallet.type !== 'farmer') return;
@@ -1585,24 +1543,14 @@ class BlockchainDemo {
             // Check each order to see if it belongs to current farmer and needs delivery
             for (let i = 0; i < parseInt(orderCounter); i++) {
                 try {
-                    // Use direct hex parsing to avoid BigNumber overflow
-                    const orderData = await this.web3.eth.call({
-                        to: this.contractAddresses.escrow,
-                        data: this.web3.eth.abi.encodeFunctionCall({
-                            name: 'orders',
-                            type: 'function',
-                            inputs: [{'name': 'orderId', 'type': 'uint256'}]
-                        }, [i])
-                    });
-                    
-                    // Parse the hex data manually to avoid automatic BigNumber conversion
-                    const order = this.parseOrderDataSafely(orderData);
+                    // Use enhanced order fetching
+                    const order = await this.getOrderData(i);
                     
                     // Check if this order is for current farmer and payment is deposited but assets not delivered
                     if (order && order.seller.toLowerCase() === this.currentWallet.address.toLowerCase() && 
                         order.paymentDeposited && !order.assetsDelivered && !order.completed && !order.cancelled) {
                         
-                        // Get asset token details
+                        // Get asset token details  
                         let assetType = 'Unknown';
                         let quantity = '0';
                         
@@ -1612,9 +1560,7 @@ class BlockchainDemo {
                             else if (assetAddress.toLowerCase() === this.contractAddresses.tEGG.toLowerCase()) assetType = '🥚 Eggs';
                             
                             if (order.assetAmounts && order.assetAmounts.length > 0) {
-                                // Use safe BigNumber string conversion
-                                const amountStr = order.assetAmounts[0];
-                                quantity = this.web3.utils.fromWei(amountStr, 'ether');
+                                quantity = this.web3.utils.fromWei(order.assetAmounts[0].toString(), 'ether');
                             }
                         }
                         
