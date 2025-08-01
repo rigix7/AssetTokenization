@@ -277,9 +277,59 @@ class BlockchainDemo {
             }
         ];
 
+        // Escrow ABI for purchase orders
+        const escrowABI = [
+            {
+                "inputs": [
+                    {"name": "seller", "type": "address"},
+                    {"name": "paymentToken", "type": "address"},
+                    {"name": "assetTokens", "type": "address[]"},
+                    {"name": "assetAmounts", "type": "uint256[]"},
+                    {"name": "paymentAmount", "type": "uint256"},
+                    {"name": "expirationTime", "type": "uint256"}
+                ],
+                "name": "createOrder",
+                "outputs": [{"name": "", "type": "uint256"}],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"name": "orderId", "type": "uint256"}
+                ],
+                "name": "depositPayment",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"name": "orderId", "type": "uint256"}
+                ],
+                "name": "orders",
+                "outputs": [
+                    {"name": "buyer", "type": "address"},
+                    {"name": "seller", "type": "address"},
+                    {"name": "paymentToken", "type": "address"},
+                    {"name": "paymentAmount", "type": "uint256"},
+                    {"name": "expirationTime", "type": "uint256"},
+                    {"name": "paymentDeposited", "type": "bool"},
+                    {"name": "assetsDelivered", "type": "bool"},
+                    {"name": "buyerVerified", "type": "bool"},
+                    {"name": "sellerVerified", "type": "bool"},
+                    {"name": "authorityVerified", "type": "bool"},
+                    {"name": "completed", "type": "bool"},
+                    {"name": "cancelled", "type": "bool"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+
         // Initialize contract instances
         this.contracts = {
             authority: new this.web3.eth.Contract(authorityABI, this.contractAddresses.authority),
+            escrow: new this.web3.eth.Contract(escrowABI, this.contractAddresses.escrow),
             tCHICKEN: new this.web3.eth.Contract(tokenABI, this.contractAddresses.tCHICKEN),
             tEGG: new this.web3.eth.Contract(tokenABI, this.contractAddresses.tEGG),
             tIDR: new this.web3.eth.Contract(tokenABI, this.contractAddresses.tIDR)
@@ -617,8 +667,105 @@ class BlockchainDemo {
     }
 
     async handlePurchaseTokens() {
-        // This would handle purchase via escrow - simplified for demo
-        this.showToast('Purchase functionality coming soon - use transfer for now', 'info');
+        if (!this.currentWallet) {
+            this.showToast('Please select a wallet first', 'error');
+            return;
+        }
+
+        if (!this.isConnected) {
+            this.showToast('Please connect to blockchain first', 'error');
+            return;
+        }
+
+        const supplier = document.getElementById('purchaseSupplier').value;
+        const assetType = document.getElementById('purchaseAssetType').value;
+        const quantity = document.getElementById('purchaseQuantity').value;
+        const totalCost = document.getElementById('purchaseTotalCost').value;
+
+        if (!supplier || !assetType || !quantity || !totalCost) {
+            this.showToast('Please fill all fields', 'error');
+            return;
+        }
+
+        try {
+            this.showLoading('Creating purchase order...');
+
+            const account = this.web3.eth.accounts.privateKeyToAccount(this.currentWallet.privateKey);
+            this.web3.eth.accounts.wallet.add(account);
+
+            // Convert amounts to Wei
+            const quantityWei = this.web3.utils.toWei(quantity, 'ether');
+            const totalCostWei = this.web3.utils.toWei(totalCost, 'ether');
+
+            // Create order parameters
+            const paymentToken = this.contractAddresses.tIDR; // Pay with tIDR
+            const assetTokens = [this.contractAddresses[assetType]];
+            const assetAmounts = [quantityWei];
+            const expirationTime = Math.floor(Date.now() / 1000) + (24 * 60 * 60); // 24 hours
+
+            // Step 1: Approve payment token spending
+            console.log('Approving payment token...');
+            const approveTx = this.contracts.tIDR.methods.approve(
+                this.contractAddresses.escrow,
+                totalCostWei
+            );
+            await approveTx.send({
+                from: account.address,
+                gas: 100000
+            });
+
+            // Step 2: Create the order
+            console.log('Creating order...');
+            const createOrderTx = this.contracts.escrow.methods.createOrder(
+                supplier,
+                paymentToken,
+                assetTokens,
+                assetAmounts,
+                totalCostWei,
+                expirationTime
+            );
+
+            const gas = await createOrderTx.estimateGas({ from: account.address });
+            const receipt = await createOrderTx.send({
+                from: account.address,
+                gas: Math.floor(gas * 1.2)
+            });
+
+            // Get the order ID from the receipt
+            const orderEvent = receipt.events.OrderCreated;
+            const orderId = orderEvent ? orderEvent.returnValues.orderId : '0';
+
+            // Step 3: Deposit payment
+            console.log('Depositing payment...');
+            const depositTx = this.contracts.escrow.methods.depositPayment(orderId);
+            await depositTx.send({
+                from: account.address,
+                gas: 200000
+            });
+
+            this.hideLoading();
+            this.showSuccess(
+                `Purchase order created successfully! Order ID: ${orderId}`, 
+                receipt.transactionHash
+            );
+            
+            // Reset form and refresh balances
+            document.getElementById('purchaseForm').reset();
+            await this.refreshBalances();
+
+            // Show informational message about next steps
+            setTimeout(() => {
+                this.showToast(
+                    `Order created! Now the supplier needs to deliver the ${assetType} tokens to complete the transaction.`,
+                    'info'
+                );
+            }, 2000);
+
+        } catch (error) {
+            this.hideLoading();
+            console.error('Purchase failed:', error);
+            this.showToast(`Failed to create purchase order: ${error.message}`, 'error');
+        }
     }
 
     updateConnectionStatus(connected, errorMsg = '') {
