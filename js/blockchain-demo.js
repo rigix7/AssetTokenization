@@ -429,6 +429,7 @@ class BlockchainDemo {
 
         document.getElementById('purchaseForm').addEventListener('submit', (e) => {
             e.preventDefault();
+            console.log('Purchase form submitted');
             this.handlePurchaseTokens();
         });
     }
@@ -667,6 +668,8 @@ class BlockchainDemo {
     }
 
     async handlePurchaseTokens() {
+        console.log('handlePurchaseTokens called');
+        
         if (!this.currentWallet) {
             this.showToast('Please select a wallet first', 'error');
             return;
@@ -678,11 +681,16 @@ class BlockchainDemo {
         }
 
         const supplier = document.getElementById('purchaseSupplier').value;
-        const assetType = document.getElementById('purchaseAssetType').value;
-        const quantity = document.getElementById('purchaseQuantity').value;
-        const totalCost = document.getElementById('purchaseTotalCost').value;
+        const assetType = document.getElementById('purchaseTokenType').value;
+        const quantity = document.getElementById('purchaseAmount').value;
+        
+        console.log('Form values:', { supplier, assetType, quantity });
+        
+        // Calculate total cost based on market rates (demo pricing)
+        const rates = { tCHICKEN: 100000, tEGG: 5000 }; // IDR per unit
+        const totalCost = (parseFloat(quantity) * rates[assetType]).toString();
 
-        if (!supplier || !assetType || !quantity || !totalCost) {
+        if (!supplier || !assetType || !quantity) {
             this.showToast('Please fill all fields', 'error');
             return;
         }
@@ -731,9 +739,19 @@ class BlockchainDemo {
                 gas: Math.floor(gas * 1.2)
             });
 
-            // Get the order ID from the receipt
-            const orderEvent = receipt.events.OrderCreated;
-            const orderId = orderEvent ? orderEvent.returnValues.orderId : '0';
+            // Get the order ID from the receipt - handle different event formats
+            let orderId = '0';
+            if (receipt.events && receipt.events.OrderCreated) {
+                orderId = receipt.events.OrderCreated.returnValues.orderId;
+            } else if (receipt.logs && receipt.logs.length > 0) {
+                // Parse logs manually if events aren't available
+                const orderCreatedLog = receipt.logs.find(log => 
+                    log.topics[0] === this.web3.utils.keccak256('OrderCreated(uint256,address,address)')
+                );
+                if (orderCreatedLog) {
+                    orderId = this.web3.utils.hexToNumber(orderCreatedLog.topics[1]);
+                }
+            }
 
             // Step 3: Deposit payment
             console.log('Depositing payment...');
@@ -764,7 +782,26 @@ class BlockchainDemo {
         } catch (error) {
             this.hideLoading();
             console.error('Purchase failed:', error);
-            this.showToast(`Failed to create purchase order: ${error.message}`, 'error');
+            console.error('Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                cause: error.cause
+            });
+            
+            // Show more detailed error message
+            let errorMsg = 'Failed to create purchase order';
+            if (error.message.includes('execution reverted')) {
+                errorMsg += ': Transaction reverted';
+            } else if (error.message.includes('insufficient funds')) {
+                errorMsg += ': Insufficient funds';
+            } else if (error.message.includes('User denied')) {
+                errorMsg += ': Transaction cancelled';
+            } else {
+                errorMsg += `: ${error.message}`;
+            }
+            
+            this.showToast(errorMsg, 'error');
         }
     }
 
