@@ -8,14 +8,8 @@ class BlockchainDemo {
         this.currentWallet = null;
         this.isConnected = false;
         
-        // Contract addresses from latest deployment
-        this.contractAddresses = {
-            authority: '0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1',
-            tCHICKEN: '0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44',
-            tEGG: '0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f',
-            tIDR: '0x4A679253410272dd5232B3Ff7cF5dbB88f295319',
-            escrow: '0x7a2088a1bFc9d81c55368AE168C2C02570cB814F'
-        };
+        // Contract addresses - will be loaded from deployment file
+        this.contractAddresses = null;
 
         // Demo wallets with reset balances (0 for fresh demos)
         this.demoWallets = {
@@ -113,8 +107,36 @@ class BlockchainDemo {
         }
     }
 
+    async loadContractAddresses() {
+        try {
+            // Try to load addresses from deployment file
+            const response = await fetch('/contract-addresses.json');
+            if (response.ok) {
+                const addresses = await response.json();
+                console.log('Loaded contract addresses from deployment file:', addresses);
+                this.contractAddresses = addresses;
+                return true;
+            }
+        } catch (error) {
+            console.log('Could not load contract addresses from file, using fallback');
+        }
+        
+        // Fallback to hardcoded addresses (current deployment)
+        this.contractAddresses = {
+            authority: '0x4ed7c70F96B99c776995fB64377f0d4aB3B0e1C1',
+            tCHICKEN: '0x322813Fd9A801c5507c9de605d63CEA4f2CE6c44',
+            tEGG: '0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f',
+            tIDR: '0x4A679253410272dd5232B3Ff7cF5dbB88f295319',
+            escrow: '0x7a2088a1bFc9d81c55368AE168C2C02570cB814F'
+        };
+        return false;
+    }
+
     async connectToBlockchain() {
         try {
+            console.log('Loading contract addresses...');
+            await this.loadContractAddresses();
+            
             console.log('Testing blockchain connection...');
             
             // Use proxy endpoint to avoid CORS issues
@@ -190,6 +212,9 @@ class BlockchainDemo {
             // Setup contracts
             console.log('Setting up contracts...');
             await this.setupContracts();
+            
+            // Display contract info now that everything is loaded
+            this.displayContractInfo();
             
             this.isConnected = true;
             this.updateConnectionStatus(true);
@@ -391,8 +416,10 @@ class BlockchainDemo {
         // Populate dropdowns
         this.populateDropdowns();
         
-        // Display contract addresses
-        this.displayContractInfo();
+        // Display contract addresses (only if loaded)
+        if (this.contractAddresses) {
+            this.displayContractInfo();
+        }
     }
 
     updateTotalCost() {
@@ -457,12 +484,22 @@ class BlockchainDemo {
     }
 
     displayContractInfo() {
-        document.getElementById('authorityAddress').textContent = this.formatAddress(this.contractAddresses.authority);
-        document.getElementById('tokenAddresses').innerHTML = `
-            tCHICKEN: ${this.formatAddress(this.contractAddresses.tCHICKEN)}<br>
-            tEGG: ${this.formatAddress(this.contractAddresses.tEGG)}<br>
-            tIDR: ${this.formatAddress(this.contractAddresses.tIDR)}
-        `;
+        if (!this.contractAddresses) {
+            console.log('Contract addresses not yet loaded');
+            return;
+        }
+        
+        const authorityElement = document.getElementById('authorityAddress');
+        const tokenAddressesElement = document.getElementById('tokenAddresses');
+        
+        if (authorityElement && tokenAddressesElement) {
+            authorityElement.textContent = this.formatAddress(this.contractAddresses.authority);
+            tokenAddressesElement.innerHTML = `
+                tCHICKEN: ${this.formatAddress(this.contractAddresses.tCHICKEN)}<br>
+                tEGG: ${this.formatAddress(this.contractAddresses.tEGG)}<br>
+                tIDR: ${this.formatAddress(this.contractAddresses.tIDR)}
+            `;
+        }
     }
 
     setupEventHandlers() {

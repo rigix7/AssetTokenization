@@ -253,6 +253,21 @@ async function main() {
   console.log(`🥚 Kitchen now has ${ethers.formatEther(await tEggToken.balanceOf(await kitchen.getAddress()))} tEGG`);
   console.log(`💰 Supplier now has ${ethers.formatEther(await tIdrToken.balanceOf(await supplier.getAddress()))} tIDR (minus 1% escrow fee)`);
 
+  // Save contract addresses to JSON file for frontend auto-loading
+  const addresses = {
+    authority: await centralAuthority.getAddress(),
+    tCHICKEN: await tChickenToken.getAddress(),
+    tEGG: await tEggToken.getAddress(),
+    tIDR: await tIdrToken.getAddress(),
+    escrow: await assetEscrow.getAddress(),
+    deployedAt: new Date().toISOString(),
+    network: network.name
+  };
+  
+  const fs = require('fs');
+  fs.writeFileSync('contract-addresses.json', JSON.stringify(addresses, null, 2));
+  console.log("💾 Contract addresses saved to contract-addresses.json for automatic frontend loading");
+
   console.log("\n🎉 Complete deployment and setup finished!");
   console.log("\n📋 Summary of what was created:");
   console.log("==========================================");
@@ -262,6 +277,7 @@ async function main() {
   console.log("✅ Tokens minted: tCHICKEN, tEGG, tIDR");
   console.log("✅ Sample purchase order created and completed through escrow");
   console.log("✅ Tokens successfully exchanged between kitchen and supplier");
+  console.log("✅ Contract addresses automatically saved for frontend");
   console.log("==========================================");
 
   console.log("\n🔗 Platform is now ready for use!");

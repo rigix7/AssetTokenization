@@ -42,6 +42,18 @@ app.post('/blockchain', async (req, res) => {
     }
 });
 
+// Serve contract addresses if available
+app.get('/contract-addresses.json', (req, res) => {
+    const fs = require('fs');
+    const addressFile = path.join(__dirname, 'contract-addresses.json');
+    
+    if (fs.existsSync(addressFile)) {
+        res.sendFile(addressFile);
+    } else {
+        res.status(404).json({ error: 'Contract addresses not found. Please deploy contracts first.' });
+    }
+});
+
 // Serve static files from the root directory
 app.use(express.static('.'));
 
