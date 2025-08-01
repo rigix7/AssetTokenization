@@ -1509,21 +1509,23 @@ class BlockchainDemo {
         return parseFloat(num).toLocaleString();
     }
 
-    // Get order data from local storage to avoid contract parsing issues
+    // Get order data from contract and combine with local data if available
     async getOrderData(orderId) {
         try {
-            // Check if we have this order stored locally first
+            // First check if we have local order data (for newly created orders)
             if (this.localOrders.has(orderId)) {
                 return this.localOrders.get(orderId);
             }
             
-            // For existing orders (created before local tracking), return demo data
-            // This handles the current orders 0 and 1 that were causing overflow errors
+            // Query the actual contract for real order status
+            const contractOrder = await this.contracts.escrow.methods.orders(orderId).call();
+            
+            // For demo orders 0 and 1, combine contract status with known demo data
             if (orderId === 0) {
                 return {
                     id: 0,
-                    buyer: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', // Kitchen Alpha
-                    seller: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', // Farmer A
+                    buyer: contractOrder.buyer || '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', // Kitchen Alpha
+                    seller: contractOrder.seller || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', // Farmer A
                     assetType: 'tCHICKEN',
                     quantity: '100',
                     pricePerUnit: '100000',
@@ -1531,17 +1533,17 @@ class BlockchainDemo {
                     assetTokens: [this.contractAddresses.tCHICKEN],
                     assetAmounts: [this.web3.utils.toWei('100', 'ether')],
                     paymentAmount: this.web3.utils.toWei('10000000', 'ether'),
-                    paymentDeposited: true,
-                    assetsDelivered: false,
-                    completed: false,
-                    cancelled: false,
+                    paymentDeposited: contractOrder.paymentDeposited,
+                    assetsDelivered: contractOrder.assetsDelivered,
+                    completed: contractOrder.completed,
+                    cancelled: contractOrder.cancelled,
                     createdAt: new Date().toISOString()
                 };
             } else if (orderId === 1) {
                 return {
                     id: 1,
-                    buyer: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', // Kitchen Alpha
-                    seller: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', // Farmer A
+                    buyer: contractOrder.buyer || '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', // Kitchen Alpha
+                    seller: contractOrder.seller || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', // Farmer A
                     assetType: 'tCHICKEN',
                     quantity: '50',
                     pricePerUnit: '100000',
@@ -1549,10 +1551,29 @@ class BlockchainDemo {
                     assetTokens: [this.contractAddresses.tCHICKEN],
                     assetAmounts: [this.web3.utils.toWei('50', 'ether')],
                     paymentAmount: this.web3.utils.toWei('5000000', 'ether'),
-                    paymentDeposited: true,
-                    assetsDelivered: false,
-                    completed: false,
-                    cancelled: false,
+                    paymentDeposited: contractOrder.paymentDeposited,
+                    assetsDelivered: contractOrder.assetsDelivered,
+                    completed: contractOrder.completed,
+                    cancelled: contractOrder.cancelled,
+                    createdAt: new Date().toISOString()
+                };
+            }
+            
+            // For other orders, try to construct from contract data
+            if (contractOrder.buyer !== '0x0000000000000000000000000000000000000000') {
+                return {
+                    id: orderId,
+                    buyer: contractOrder.buyer,
+                    seller: contractOrder.seller,
+                    assetType: 'Unknown',
+                    quantity: '0',
+                    assetTokens: contractOrder.assetTokens || [],
+                    assetAmounts: contractOrder.assetAmounts || [],
+                    paymentAmount: contractOrder.paymentAmount,
+                    paymentDeposited: contractOrder.paymentDeposited,
+                    assetsDelivered: contractOrder.assetsDelivered,
+                    completed: contractOrder.completed,
+                    cancelled: contractOrder.cancelled,
                     createdAt: new Date().toISOString()
                 };
             }
