@@ -1451,6 +1451,7 @@ class BlockchainDemo {
 
             // Remove '0x' prefix
             const hex = orderData.slice(2);
+            console.log(`Parsing order data, total hex length: ${hex.length}`);
             
             // Each field is 32 bytes (64 hex chars)
             const fieldSize = 64;
@@ -1458,17 +1459,21 @@ class BlockchainDemo {
 
             const parseAddress = (hexData, position) => {
                 const addressHex = hexData.substr(position, fieldSize);
+                console.log(`Address at offset ${position}: ${addressHex}`);
                 return '0x' + addressHex.slice(24); // Take last 20 bytes for address
             };
 
             const parseUint256 = (hexData, position) => {
                 const numberHex = hexData.substr(position, fieldSize);
+                console.log(`Uint256 at offset ${position}: ${numberHex}`);
                 return '0x' + numberHex;
             };
 
             const parseBool = (hexData, position) => {
                 const boolHex = hexData.substr(position, fieldSize);
-                return parseInt(boolHex.slice(-1), 16) === 1;
+                const result = parseInt(boolHex.slice(-1), 16) === 1;
+                console.log(`Bool at offset ${position}: ${boolHex} = ${result}`);
+                return result;
             };
 
             // Order struct fields (in order of the Solidity struct):
@@ -1484,11 +1489,14 @@ class BlockchainDemo {
 
             // Skip dynamic arrays for now (assetTokens, assetAmounts) - complex parsing
             // We'll add these later if needed
+            console.log(`Skipping arrays, offset before skip: ${offset}`);
             offset += fieldSize * 2; // Skip array pointers
+            console.log(`Offset after skipping arrays: ${offset}`);
             
             const paymentAmount = parseUint256(hex, offset); offset += fieldSize;
             const expirationTime = parseUint256(hex, offset); offset += fieldSize;
             
+            console.log(`Starting boolean parsing at offset: ${offset}`);
             const paymentDeposited = parseBool(hex, offset); offset += fieldSize;
             const assetsDelivered = parseBool(hex, offset); offset += fieldSize;
             const buyerVerified = parseBool(hex, offset); offset += fieldSize;
