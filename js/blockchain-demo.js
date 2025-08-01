@@ -701,11 +701,20 @@ class BlockchainDemo {
                             supplier: order.seller,
                             paymentDeposited: order.paymentDeposited,
                             assetsDelivered: order.assetsDelivered,
-                            expirationTime: order.expirationTime
+                            expirationTime: order.expirationTime.toString()
                         });
                     }
                 } catch (orderError) {
                     console.log(`Skipping order ${i}:`, orderError.message);
+                    // Log the raw blockchain data to debug
+                    try {
+                        const rawData = await this.contracts.escrow.methods.orders(i).call();
+                        console.log(`Raw blockchain data for order ${i}:`, rawData);
+                        // Manually parse without triggering overflow
+                        console.log(`Order ${i} - Buyer: ${rawData[0]}, Seller: ${rawData[1]}, Payment: ${rawData[5]}`);
+                    } catch (rawError) {
+                        console.log(`Cannot get raw data for order ${i}:`, rawError.message);
+                    }
                     continue;
                 }
             }
@@ -1335,6 +1344,14 @@ class BlockchainDemo {
                     }
                 } catch (orderError) {
                     console.log(`Skipping farmer order ${i}:`, orderError.message);
+                    // Log the raw blockchain data to debug
+                    try {
+                        const rawData = await this.contracts.escrow.methods.orders(i).call();
+                        console.log(`Raw farmer order ${i} data:`, rawData);
+                        console.log(`Farmer order ${i} - Buyer: ${rawData[0]}, Seller: ${rawData[1]}, Payment: ${rawData[5]}`);
+                    } catch (rawError) {
+                        console.log(`Cannot get raw farmer order ${i} data:`, rawError.message);
+                    }
                     continue;
                 }
             }
