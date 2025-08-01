@@ -737,22 +737,18 @@ class BlockchainDemo {
     }
 
     getOrderStatus(order) {
-        if (!order.paymentDeposited) {
-            return { text: 'Payment Pending', class: 'bg-warning' };
-        } else if (!order.assetsDelivered) {
-            return { text: 'Awaiting Delivery', class: 'bg-info' };
+        if (!order.assetsDelivered) {
+            return { text: 'Payment Secured - Awaiting Delivery', class: 'bg-info' };
         } else {
-            return { text: 'Ready for Verification', class: 'bg-success' };
+            return { text: 'Assets Delivered - Ready for Verification', class: 'bg-success' };
         }
     }
 
     getOrderActions(order) {
-        if (!order.paymentDeposited) {
-            return `<button class="btn btn-sm btn-primary" onclick="window.demoApp.depositPayment(${order.id})">Deposit Payment</button>`;
-        } else if (order.assetsDelivered) {
-            return `<button class="btn btn-sm btn-success" onclick="window.demoApp.verifyOrder(${order.id})">Verify Order</button>`;
+        if (order.assetsDelivered) {
+            return `<button class="btn btn-sm btn-success" onclick="window.demoApp.verifyOrder(${order.id})">Verify & Complete Order</button>`;
         } else {
-            return '<span class="text-muted">Waiting for supplier</span>';
+            return '<span class="text-muted"><i class="fas fa-clock me-1"></i>Waiting for supplier delivery</span>';
         }
     }
 
@@ -773,33 +769,9 @@ class BlockchainDemo {
         return customers[address.toLowerCase()] || this.formatAddress(address);
     }
 
-    async depositPayment(orderId) {
-        try {
-            this.showLoading('Depositing payment...');
-            
-            const account = this.web3.eth.accounts.privateKeyToAccount(this.currentWallet.privateKey);
-            this.web3.eth.accounts.wallet.add(account);
-            
-            const depositTx = this.contracts.escrow.methods.depositPayment(orderId);
-            await depositTx.send({
-                from: account.address,
-                gas: 200000
-            });
-            
-            this.hideLoading();
-            this.showSuccess('Payment deposited successfully!');
-            await this.refreshBalances();
-            
-        } catch (error) {
-            this.hideLoading();
-            console.error('Payment deposit failed:', error);
-            this.showToast(`Failed to deposit payment: ${error.message}`, 'error');
-        }
-    }
 
-    async retryPayment(orderId) {
-        return this.depositPayment(orderId);
-    }
+
+    // Payment deposit is now automatic - no retry needed
 
     async updateFarmerOrders() {
         if (!this.currentWallet || this.currentWallet.type !== 'farmer') return;
@@ -892,22 +864,20 @@ class BlockchainDemo {
     }
 
     getFarmerOrderStatus(order) {
-        if (!order.paymentDeposited) {
-            return { text: 'Waiting for Payment', class: 'bg-warning' };
-        } else if (!order.assetsDelivered) {
-            return { text: 'Payment Received - Deliver Assets', class: 'bg-info' };
+        if (!order.assetsDelivered) {
+            return { text: 'Payment Secured - Ready to Deliver', class: 'bg-success' };
         } else {
             return { text: 'Assets Delivered - Awaiting Verification', class: 'bg-primary' };
         }
     }
 
     getFarmerOrderActions(order) {
-        if (!order.paymentDeposited) {
-            return '<span class="text-muted">Waiting for buyer</span>';
-        } else if (!order.assetsDelivered) {
-            return `<button class="btn btn-sm btn-success" onclick="window.blockchainDemo.deliverAssets(${order.id})">Deliver Assets</button>`;
+        if (!order.assetsDelivered) {
+            return `<button class="btn btn-sm btn-success" onclick="window.demoApp.deliverAssets(${order.id})">
+                <i class="fas fa-truck me-1"></i>Deliver Assets
+            </button>`;
         } else {
-            return '<span class="text-muted">Waiting for verification</span>';
+            return '<span class="text-muted"><i class="fas fa-check me-1"></i>Delivered - awaiting verification</span>';
         }
     }
 
@@ -1348,12 +1318,9 @@ class BlockchainDemo {
             let contractsTotal = 5;
             
             try {
-                // Test authority contract
-                const authorityTest = await this.contracts.authority.methods.hasRole(
-                    '0x0000000000000000000000000000000000000000000000000000000000000000', // DEFAULT_ADMIN_ROLE
-                    this.demoWallets.authority.address
-                ).call();
-                if (authorityTest !== null && authorityTest !== undefined) contractsWorking++;
+                // Test authority contract - use a simpler method
+                const authorityTest = await this.contracts.authority.methods.owner().call();
+                if (authorityTest !== null && authorityTest !== '0x' && authorityTest !== '0x0000000000000000000000000000000000000000') contractsWorking++;
             } catch (e) { console.log('Authority contract test failed:', e.message); }
             
             try {
