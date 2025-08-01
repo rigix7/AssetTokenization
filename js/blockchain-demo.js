@@ -1725,6 +1725,7 @@ class BlockchainDemo {
             }
             
             // Query the actual contract for real order status using safe low-level call
+            console.log(`Querying contract for order ${orderId}...`);
             const orderData = await this.web3.eth.call({
                 to: this.contractAddresses.escrow,
                 data: this.web3.eth.abi.encodeFunctionCall({
@@ -1734,8 +1735,12 @@ class BlockchainDemo {
                 }, [orderId])
             });
             
+            console.log(`Raw contract data for order ${orderId}:`, orderData);
+            
             // Parse the hex data manually to avoid automatic BigNumber conversion
             const contractOrder = this.parseOrderDataSafely(orderData);
+            
+            console.log(`Parsed contract order ${orderId}:`, contractOrder);
             
             // If parsing failed, return null
             if (!contractOrder) {
