@@ -666,7 +666,7 @@ class BlockchainDemo {
                             else if (assetAddress.toLowerCase() === this.contractAddresses.tEGG.toLowerCase()) assetType = '🥚 Eggs';
                             
                             if (order.assetAmounts && order.assetAmounts.length > 0) {
-                                quantity = this.web3.utils.fromWei(order.assetAmounts[0], 'ether');
+                                quantity = this.web3.utils.fromWei(order.assetAmounts[0].toString(), 'ether');
                             }
                         }
                         
@@ -674,7 +674,7 @@ class BlockchainDemo {
                             id: i,
                             assetType,
                             quantity,
-                            totalCost: this.web3.utils.fromWei(order.paymentAmount, 'ether'),
+                            totalCost: this.web3.utils.fromWei(order.paymentAmount.toString(), 'ether'),
                             supplier: order.seller,
                             paymentDeposited: order.paymentDeposited,
                             assetsDelivered: order.assetsDelivered,
@@ -1278,7 +1278,7 @@ class BlockchainDemo {
                             else if (assetAddress.toLowerCase() === this.contractAddresses.tEGG.toLowerCase()) assetType = '🥚 Eggs';
                             
                             if (order.assetAmounts && order.assetAmounts.length > 0) {
-                                quantity = this.web3.utils.fromWei(order.assetAmounts[0], 'ether');
+                                quantity = this.web3.utils.fromWei(order.assetAmounts[0].toString(), 'ether');
                             }
                         }
                         
