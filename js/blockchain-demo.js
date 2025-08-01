@@ -1476,9 +1476,9 @@ class BlockchainDemo {
                 return result;
             };
 
-            // Order struct fields (in order of the Solidity struct):
-            // address buyer, address seller, address paymentToken
-            // address[] assetTokens, uint256[] assetAmounts
+            // CORRECTED Order struct fields (from contract):
+            // address buyer, address seller, address paymentToken  
+            // address[] assetTokens, uint256[] assetAmounts (these are pointers/lengths in simple ABI)
             // uint256 paymentAmount, uint256 expirationTime
             // bool paymentDeposited, bool assetsDelivered, bool buyerVerified
             // bool sellerVerified, bool authorityVerified, bool completed, bool cancelled
@@ -1487,12 +1487,15 @@ class BlockchainDemo {
             const seller = parseAddress(hex, offset); offset += fieldSize;
             const paymentToken = parseAddress(hex, offset); offset += fieldSize;
 
-            // Skip dynamic arrays for now (assetTokens, assetAmounts) - complex parsing
-            // We'll add these later if needed
-            console.log(`Skipping arrays, offset before skip: ${offset}`);
-            offset += fieldSize * 2; // Skip array pointers
-            console.log(`Offset after skipping arrays: ${offset}`);
+            // The arrays are encoded differently - for this simple case they appear to be empty
+            // so we see: arrayPointer1, arrayPointer2, then actual fields
+            console.log(`Parsing dynamic arrays, offset before: ${offset}`);
+            const arrayPointer1 = parseUint256(hex, offset); offset += fieldSize;
+            const arrayPointer2 = parseUint256(hex, offset); offset += fieldSize;
+            console.log(`Array pointers: ${arrayPointer1}, ${arrayPointer2}`);
             
+            // Now we're at the actual order data
+            console.log(`Starting order fields at offset: ${offset}`);
             const paymentAmount = parseUint256(hex, offset); offset += fieldSize;
             const expirationTime = parseUint256(hex, offset); offset += fieldSize;
             
