@@ -655,23 +655,37 @@ class BlockchainDemo {
             // Check each order to see if it belongs to current wallet and is incomplete
             for (let i = 0; i < parseInt(orderCounter); i++) {
                 try {
-                    const orderResult = await this.contracts.escrow.methods.orders(i).call();
-                    // Handle struct return properly
+                    // Use low-level call to avoid automatic BigNumber conversion
+                    const orderData = await this.web3.eth.call({
+                        to: this.contractAddresses.escrow,
+                        data: this.web3.eth.abi.encodeFunctionCall({
+                            name: 'orders',
+                            type: 'function',
+                            inputs: [{'name': 'orderId', 'type': 'uint256'}]
+                        }, [i])
+                    });
+                    
+                    // Manually decode the result to prevent overflow
+                    const decoded = this.web3.eth.abi.decodeParameters([
+                        'address', 'address', 'address', 'address[]', 'uint256[]', 
+                        'uint256', 'uint256', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'
+                    ], orderData);
+                    
                     const order = {
-                        buyer: orderResult[0] || orderResult.buyer,
-                        seller: orderResult[1] || orderResult.seller,
-                        paymentToken: orderResult[2] || orderResult.paymentToken,
-                        assetTokens: orderResult[3] || orderResult.assetTokens,
-                        assetAmounts: orderResult[4] || orderResult.assetAmounts,
-                        paymentAmount: orderResult[5] || orderResult.paymentAmount,
-                        expirationTime: orderResult[6] || orderResult.expirationTime,
-                        paymentDeposited: orderResult[7] || orderResult.paymentDeposited,
-                        assetsDelivered: orderResult[8] || orderResult.assetsDelivered,
-                        buyerVerified: orderResult[9] || orderResult.buyerVerified,
-                        sellerVerified: orderResult[10] || orderResult.sellerVerified,
-                        authorityVerified: orderResult[11] || orderResult.authorityVerified,
-                        completed: orderResult[12] || orderResult.completed,
-                        cancelled: orderResult[13] || orderResult.cancelled
+                        buyer: decoded[0],
+                        seller: decoded[1], 
+                        paymentToken: decoded[2],
+                        assetTokens: decoded[3],
+                        assetAmounts: decoded[4],
+                        paymentAmount: decoded[5],
+                        expirationTime: decoded[6], // Keep as string to avoid overflow
+                        paymentDeposited: decoded[7],
+                        assetsDelivered: decoded[8],
+                        buyerVerified: decoded[9],
+                        sellerVerified: decoded[10],
+                        authorityVerified: decoded[11],
+                        completed: decoded[12],
+                        cancelled: decoded[13]
                     };
                     
                     // Check if this order belongs to current wallet and is not completed/cancelled
@@ -701,7 +715,7 @@ class BlockchainDemo {
                             supplier: order.seller,
                             paymentDeposited: order.paymentDeposited,
                             assetsDelivered: order.assetsDelivered,
-                            expirationTime: order.expirationTime.toString()
+                            expirationTime: order.expirationTime
                         });
                     }
                 } catch (orderError) {
@@ -1294,23 +1308,37 @@ class BlockchainDemo {
             // Check each order to see if it belongs to current farmer and needs delivery
             for (let i = 0; i < parseInt(orderCounter); i++) {
                 try {
-                    const orderResult = await this.contracts.escrow.methods.orders(i).call();
-                    // Handle struct return properly
+                    // Use low-level call to avoid automatic BigNumber conversion
+                    const orderData = await this.web3.eth.call({
+                        to: this.contractAddresses.escrow,
+                        data: this.web3.eth.abi.encodeFunctionCall({
+                            name: 'orders',
+                            type: 'function',
+                            inputs: [{'name': 'orderId', 'type': 'uint256'}]
+                        }, [i])
+                    });
+                    
+                    // Manually decode the result to prevent overflow
+                    const decoded = this.web3.eth.abi.decodeParameters([
+                        'address', 'address', 'address', 'address[]', 'uint256[]', 
+                        'uint256', 'uint256', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'
+                    ], orderData);
+                    
                     const order = {
-                        buyer: orderResult[0] || orderResult.buyer,
-                        seller: orderResult[1] || orderResult.seller,
-                        paymentToken: orderResult[2] || orderResult.paymentToken,
-                        assetTokens: orderResult[3] || orderResult.assetTokens,
-                        assetAmounts: orderResult[4] || orderResult.assetAmounts,
-                        paymentAmount: orderResult[5] || orderResult.paymentAmount,
-                        expirationTime: orderResult[6] || orderResult.expirationTime,
-                        paymentDeposited: orderResult[7] || orderResult.paymentDeposited,
-                        assetsDelivered: orderResult[8] || orderResult.assetsDelivered,
-                        buyerVerified: orderResult[9] || orderResult.buyerVerified,
-                        sellerVerified: orderResult[10] || orderResult.sellerVerified,
-                        authorityVerified: orderResult[11] || orderResult.authorityVerified,
-                        completed: orderResult[12] || orderResult.completed,
-                        cancelled: orderResult[13] || orderResult.cancelled
+                        buyer: decoded[0],
+                        seller: decoded[1], 
+                        paymentToken: decoded[2],
+                        assetTokens: decoded[3],
+                        assetAmounts: decoded[4],
+                        paymentAmount: decoded[5],
+                        expirationTime: decoded[6], // Keep as string to avoid overflow
+                        paymentDeposited: decoded[7],
+                        assetsDelivered: decoded[8],
+                        buyerVerified: decoded[9],
+                        sellerVerified: decoded[10],
+                        authorityVerified: decoded[11],
+                        completed: decoded[12],
+                        cancelled: decoded[13]
                     };
                     
                     // Check if this order is for current farmer and payment is deposited but assets not delivered
