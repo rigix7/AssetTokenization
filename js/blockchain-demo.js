@@ -11,7 +11,8 @@ class BlockchainDemo {
         // Contract addresses - will be loaded from deployment file
         this.contractAddresses = null;
         
-        // Always query blockchain directly - no caching for demo
+        // Local order tracking to avoid complex contract parsing
+        this.localOrders = new Map(); // orderId -> order details
 
         // Demo wallets with reset balances (0 for fresh demos)
         this.demoWallets = {
@@ -917,15 +918,7 @@ class BlockchainDemo {
             
             this.hideLoading();
             this.showSuccess('Order verified successfully!');
-            
-            // All data comes from blockchain directly - no cache to clear
-            
             await this.refreshBalances();
-            
-            // Refresh all order displays
-            this.updateActiveOrders();
-            this.updateFarmerOrders();
-            this.updateKitchenOrders();
             
         } catch (error) {
             this.hideLoading();
@@ -1279,7 +1272,25 @@ class BlockchainDemo {
                 gas: 200000
             });
 
-            // Order created and payment deposited - all data will come from blockchain
+            // Store order data locally for accurate display WITH payment status
+            this.localOrders.set(orderId, {
+                id: orderId,
+                buyer: account.address,
+                seller: supplier,
+                assetType: assetType,
+                quantity: quantity,
+                pricePerUnit: pricePerUnit,
+                totalCost: totalCost,
+                assetTokens: assetTokens,
+                assetAmounts: assetAmounts,
+                paymentAmount: totalCostWei,
+                paymentDeposited: true,  // Payment was just deposited successfully
+                assetsDelivered: false,  // Assets not delivered yet
+                completed: false,        // Order not completed yet
+                cancelled: false,        // Order not cancelled
+                createdAt: new Date().toISOString(),
+                expirationTime: expirationTime
+            });
 
             this.hideLoading();
             this.showSuccess(
@@ -1743,10 +1754,22 @@ class BlockchainDemo {
         return parseFloat(num).toLocaleString();
     }
 
-    // Get order data directly from contract - no caching
+    // Get order data from contract and combine with local data if available
     async getOrderData(orderId) {
         try {
-            // Always query the blockchain directly for demo consistency
+            // First check if we have local order data (for newly created orders)
+            if (this.localOrders.has(orderId)) {
+                const localOrder = this.localOrders.get(orderId);
+                // If local order is missing critical status fields, remove it and query contract instead
+                if (localOrder.paymentDeposited === undefined) {
+                    console.log(`Local order ${orderId} missing status fields, clearing cache...`);
+                    this.localOrders.delete(orderId);
+                } else {
+                    return localOrder;
+                }
+            }
+            
+            // Query the actual contract for real order status using safe low-level call
             console.log(`Querying contract for order ${orderId}...`);
             const orderData = await this.web3.eth.call({
                 to: this.contractAddresses.escrow,
@@ -1790,21 +1813,19 @@ class BlockchainDemo {
                 if (contractOrder.paymentToken) {
                     const paymentToken = contractOrder.paymentToken.toLowerCase();
                     if (paymentToken === this.contractAddresses.tIDR.toLowerCase()) {
-                        // This is an asset purchase order using tIDR tokens
-                        // For demo, we'll analyze asset tokens to determine the type
-                        if (contractOrder.assetTokens && contractOrder.assetTokens.length > 0) {
-                            const firstAssetToken = contractOrder.assetTokens[0].toLowerCase();
-                            if (firstAssetToken === this.contractAddresses.tCHICKEN.toLowerCase()) {
-                                assetType = '🐔 Chickens';
-                                if (contractOrder.assetAmounts && contractOrder.assetAmounts.length > 0) {
-                                    quantity = this.web3.utils.fromWei(contractOrder.assetAmounts[0], 'ether');
-                                }
-                            } else if (firstAssetToken === this.contractAddresses.tEGG.toLowerCase()) {
-                                assetType = '🥚 Eggs';
-                                if (contractOrder.assetAmounts && contractOrder.assetAmounts.length > 0) {
-                                    quantity = this.web3.utils.fromWei(contractOrder.assetAmounts[0], 'ether');
-                                }
-                            }
+                        // This is an asset purchase order, need to determine what asset was bought
+                        // For now, we'll use the local order data if available, or try to infer
+                        
+                        // Check if we have local order data for this order
+                        if (this.localOrders.has(orderId)) {
+                            const localOrder = this.localOrders.get(orderId);
+                            assetType = localOrder.assetType || 'Unknown';
+                            quantity = localOrder.quantity || '0';
+                            totalCost = localOrder.totalCost || totalCost;
+                        } else {
+                            // Try to infer from recent order creation if this is order 0
+                            // Based on the most recent minting activity
+                            assetType = 'Agricultural Asset'; // Generic fallback
                         }
                     }
                 }
@@ -2012,12 +2033,9 @@ class BlockchainDemo {
             this.hideLoading();
             this.showSuccess(`Assets delivered for order #${orderId}`, receipt.transactionHash);
             
-            // All data comes from blockchain directly - no cache to clear
-            
             // Refresh both farmer and kitchen order lists
             this.updateFarmerOrders();
             this.updateActiveOrders();
-            this.updateKitchenOrders();
             
         } catch (error) {
             this.hideLoading();
