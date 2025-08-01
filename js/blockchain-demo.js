@@ -974,9 +974,8 @@ class BlockchainDemo {
                 throw new Error('Insufficient balance');
             }
 
-            // Use transfer to burn address (0x000...dead) to simulate burning
-            const burnAddress = '0x000000000000000000000000000000000000dEaD';
-            const tx = contract.methods.transfer(burnAddress, quantityWei);
+            // Use the actual burnOwnAssets method from the smart contract
+            const tx = contract.methods.burnOwnAssets(quantityWei, reason);
 
             const gas = await tx.estimateGas({ from: account.address });
             const gasPrice = await this.web3.eth.getGasPrice();
@@ -988,7 +987,7 @@ class BlockchainDemo {
             });
 
             this.hideLoading();
-            this.showSuccess(`Successfully burned ${quantity} ${assetType} (Reason: ${reason})\nTokens sent to burn address`, receipt.transactionHash);
+            this.showSuccess(`Successfully burned ${quantity} ${assetType} (Reason: ${reason})`, receipt.transactionHash);
             
             // Reset form and refresh balances
             document.getElementById('burnAssetsForm').reset();
