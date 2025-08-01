@@ -995,6 +995,14 @@ class BlockchainDemo {
         } catch (error) {
             this.hideLoading();
             console.error('Burn failed:', error);
+            console.error('Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+                assetType: assetType,
+                contractAddress: this.contractAddresses[assetType],
+                contractMethods: contract.methods ? Object.keys(contract.methods) : 'no methods'
+            });
             this.showToast(`Failed to burn assets: ${error.message}`, 'error');
         }
     }
