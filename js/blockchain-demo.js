@@ -962,6 +962,11 @@ class BlockchainDemo {
         try {
             this.showLoading('Burning assets...');
 
+            // Make sure we have contracts and the specific contract exists
+            if (!this.contracts || !this.contracts[assetType]) {
+                throw new Error(`Contract for ${assetType} not found. Please refresh the page.`);
+            }
+
             const contract = this.contracts[assetType];
             const quantityWei = this.web3.utils.toWei(quantity, 'ether');
 
@@ -971,7 +976,12 @@ class BlockchainDemo {
             // Check balance first
             const balance = await contract.methods.balanceOf(account.address).call();
             if (this.web3.utils.toBN(balance).lt(this.web3.utils.toBN(quantityWei))) {
-                throw new Error('Insufficient balance');
+                throw new Error('Insufficient balance to burn this amount');
+            }
+
+            // Verify the burnOwnAssets method exists
+            if (!contract.methods.burnOwnAssets) {
+                throw new Error('burnOwnAssets method not found in contract');
             }
 
             // Use the actual burnOwnAssets method from the smart contract
@@ -1002,8 +1012,10 @@ class BlockchainDemo {
                 stack: error.stack,
                 assetType: assetType,
                 contractAddress: this.contractAddresses ? this.contractAddresses[assetType] : 'no addresses loaded',
-                contractExists: !!contract,
-                contractMethods: contract && contract.methods ? Object.keys(contract.methods) : 'no contract or methods',
+                contractsLoaded: !!this.contracts,
+                specificContractExists: !!(this.contracts && this.contracts[assetType]),
+                contractMethods: this.contracts && this.contracts[assetType] && this.contracts[assetType].methods ? 
+                    Object.keys(this.contracts[assetType].methods) : 'no contract or methods',
                 isConnected: this.isConnected,
                 currentWallet: this.currentWallet ? this.currentWallet.address : 'no wallet'
             });
