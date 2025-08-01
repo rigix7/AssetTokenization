@@ -1517,57 +1517,15 @@ class BlockchainDemo {
                 return this.localOrders.get(orderId);
             }
             
-            // Use raw contract calls to avoid BigNumber overflow issues completely
-            const escrowAddress = this.contractAddresses.escrow;
-            const orderMethodSignature = '0xa85c38ef'; // orders(uint256) method signature
-            const paddedOrderId = this.web3.utils.padLeft(this.web3.utils.toHex(orderId), 64);
-            
-            const rawResult = await this.web3.eth.call({
-                to: escrowAddress,
-                data: orderMethodSignature + paddedOrderId.slice(2)
-            });
-            
-            let orderData;
-            if (rawResult && rawResult !== '0x' && rawResult.length >= 450) {
-                // Parse the response - Solidity struct returns data in 32-byte chunks
-                // Each field is 64 hex chars (32 bytes), starting after '0x'
-                const buyer = '0x' + rawResult.slice(26, 66);
-                const seller = '0x' + rawResult.slice(90, 130);
-                
-                // Boolean fields - check last character of each 32-byte chunk
-                // paymentDeposited is at position 7 (index 2 + 7*64 = 450)
-                const paymentDeposited = rawResult.slice(450, 514).slice(-1) === '1';
-                // assetsDelivered is at position 8 (index 2 + 8*64 = 514)
-                const assetsDelivered = rawResult.slice(514, 578).slice(-1) === '1';
-                // completed is at position 12 (index 2 + 12*64 = 770)
-                const completed = rawResult.slice(770, 834).slice(-1) === '1';
-                // cancelled is at position 13 (index 2 + 13*64 = 834)
-                const cancelled = rawResult.slice(834, 898).slice(-1) === '1';
-                
-                orderData = {
-                    buyer,
-                    seller,
-                    paymentDeposited,
-                    assetsDelivered,
-                    completed,
-                    cancelled
-                };
-            } else {
-                // No valid data returned
-                return null;
-            }
-
-            // Skip invalid/empty orders (when buyer is zero address)
-            if (!orderData.buyer || orderData.buyer === '0x0000000000000000000000000000000000000000') {
-                return null;
-            }
+            // Query the actual contract for real order status
+            const contractOrder = await this.contracts.escrow.methods.orders(orderId).call();
             
             // For demo orders 0 and 1, combine contract status with known demo data
             if (orderId === 0) {
                 return {
                     id: 0,
-                    buyer: orderData.buyer || '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', // Kitchen Alpha
-                    seller: orderData.seller || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', // Farmer A
+                    buyer: contractOrder.buyer || '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', // Kitchen Alpha
+                    seller: contractOrder.seller || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', // Farmer A
                     assetType: 'tCHICKEN',
                     quantity: '100',
                     pricePerUnit: '100000',
@@ -1575,17 +1533,17 @@ class BlockchainDemo {
                     assetTokens: [this.contractAddresses.tCHICKEN],
                     assetAmounts: [this.web3.utils.toWei('100', 'ether')],
                     paymentAmount: this.web3.utils.toWei('10000000', 'ether'),
-                    paymentDeposited: orderData.paymentDeposited,
-                    assetsDelivered: orderData.assetsDelivered,
-                    completed: orderData.completed,
-                    cancelled: orderData.cancelled,
+                    paymentDeposited: contractOrder.paymentDeposited,
+                    assetsDelivered: contractOrder.assetsDelivered,
+                    completed: contractOrder.completed,
+                    cancelled: contractOrder.cancelled,
                     createdAt: new Date().toISOString()
                 };
             } else if (orderId === 1) {
                 return {
                     id: 1,
-                    buyer: orderData.buyer || '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', // Kitchen Alpha
-                    seller: orderData.seller || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', // Farmer A
+                    buyer: contractOrder.buyer || '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65', // Kitchen Alpha
+                    seller: contractOrder.seller || '0x70997970C51812dc3A010C7d01b50e0d17dc79C8', // Farmer A
                     assetType: 'tCHICKEN',
                     quantity: '50',
                     pricePerUnit: '100000',
@@ -1593,30 +1551,32 @@ class BlockchainDemo {
                     assetTokens: [this.contractAddresses.tCHICKEN],
                     assetAmounts: [this.web3.utils.toWei('50', 'ether')],
                     paymentAmount: this.web3.utils.toWei('5000000', 'ether'),
-                    paymentDeposited: orderData.paymentDeposited,
-                    assetsDelivered: orderData.assetsDelivered,
-                    completed: orderData.completed,
-                    cancelled: orderData.cancelled,
+                    paymentDeposited: contractOrder.paymentDeposited,
+                    assetsDelivered: contractOrder.assetsDelivered,
+                    completed: contractOrder.completed,
+                    cancelled: contractOrder.cancelled,
                     createdAt: new Date().toISOString()
                 };
             }
             
             // For other orders, try to construct from contract data
-            return {
-                id: orderId,
-                buyer: orderData.buyer,
-                seller: orderData.seller,
-                assetType: 'Unknown',
-                quantity: '0',
-                assetTokens: [],
-                assetAmounts: [],
-                paymentAmount: '0',
-                paymentDeposited: orderData.paymentDeposited,
-                assetsDelivered: orderData.assetsDelivered,
-                completed: orderData.completed,
-                cancelled: orderData.cancelled,
-                createdAt: new Date().toISOString()
-            };
+            if (contractOrder.buyer !== '0x0000000000000000000000000000000000000000') {
+                return {
+                    id: orderId,
+                    buyer: contractOrder.buyer,
+                    seller: contractOrder.seller,
+                    assetType: 'Unknown',
+                    quantity: '0',
+                    assetTokens: contractOrder.assetTokens || [],
+                    assetAmounts: contractOrder.assetAmounts || [],
+                    paymentAmount: contractOrder.paymentAmount,
+                    paymentDeposited: contractOrder.paymentDeposited,
+                    assetsDelivered: contractOrder.assetsDelivered,
+                    completed: contractOrder.completed,
+                    cancelled: contractOrder.cancelled,
+                    createdAt: new Date().toISOString()
+                };
+            }
             
             return null;
         } catch (error) {
@@ -1651,10 +1611,10 @@ class BlockchainDemo {
                         orderPaymentDeposited: order?.paymentDeposited
                     });
                     
-                    // Check if this order is for current farmer and payment is deposited
+                    // Check if this order is for current farmer and payment is deposited but assets not delivered
                     if (order && order.seller && this.currentWallet && this.currentWallet.address && 
                         order.seller.toLowerCase() === this.currentWallet.address.toLowerCase() && 
-                        order.paymentDeposited && !order.cancelled) {
+                        order.paymentDeposited && !order.assetsDelivered && !order.completed && !order.cancelled) {
                         
                         // Get asset token details from order data
                         let assetType = 'Unknown';
@@ -1678,37 +1638,13 @@ class BlockchainDemo {
                         
                         const customerName = this.getCustomerName(order.buyer);
                         
-                        // Determine order status and available actions
-                        let status, statusClass, actionHtml;
-                        
-                        if (order.completed) {
-                            status = 'Completed';
-                            statusClass = 'bg-success';
-                            actionHtml = '<span class="text-muted">Order Complete</span>';
-                        } else if (order.assetsDelivered) {
-                            status = 'Assets Delivered';
-                            statusClass = 'bg-info';
-                            actionHtml = '<span class="text-muted">Awaiting Settlement</span>';
-                        } else if (order.paymentDeposited) {
-                            status = 'Payment Received';
-                            statusClass = 'bg-warning';
-                            actionHtml = `<button class="btn btn-sm btn-success" onclick="window.demoApp.deliverAssets(${i})">
-                                            <i class="fas fa-truck"></i> Deliver
-                                          </button>`;
-                        } else {
-                            status = 'Pending Payment';
-                            statusClass = 'bg-secondary';
-                            actionHtml = '<span class="text-muted">Awaiting Payment</span>';
-                        }
-
                         orders.push({
                             id: i,
                             assetType,
                             quantity,
                             customer: customerName,
-                            status,
-                            statusClass,
-                            actionHtml
+                            paymentDeposited: order.paymentDeposited,
+                            assetsDelivered: order.assetsDelivered
                         });
                     }
                 } catch (orderError) {
@@ -1719,7 +1655,7 @@ class BlockchainDemo {
 
             // Update UI
             if (orders.length === 0) {
-                farmerOrdersList.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No orders found</td></tr>';
+                farmerOrdersList.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No pending orders</td></tr>';
             } else {
                 farmerOrdersList.innerHTML = orders.map(order => {
                     return `
@@ -1728,8 +1664,12 @@ class BlockchainDemo {
                             <td>${order.assetType}</td>
                             <td>${parseFloat(order.quantity).toLocaleString()}</td>
                             <td>${order.customer}</td>
-                            <td><span class="badge ${order.statusClass}">${order.status}</span></td>
-                            <td>${order.actionHtml}</td>
+                            <td><span class="badge bg-warning">Payment Received</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-success" onclick="window.demoApp.deliverAssets(${order.id})">
+                                    <i class="fas fa-truck"></i> Deliver
+                                </button>
+                            </td>
                         </tr>
                     `;
                 }).join('');
