@@ -77,6 +77,7 @@ const translations = {
             title: "Central Kitchen Dashboard",
             subtitle: "Place orders and manage ingredient procurement",
             budget_status: "Budget Status",
+            active_orders: "Active Orders",
             available_budget: "Available Budget",
             budget_expires: "Budget expires in",
             spent_today: "Spent Today",

@@ -571,6 +571,165 @@ class BlockchainDemo {
         document.getElementById('farmerChickenBalance').textContent = this.formatNumber(chicken);
         document.getElementById('farmerEggBalance').textContent = this.formatNumber(egg);
         document.getElementById('kitchenBudget').textContent = this.formatNumber(parseFloat(idr) / 1000000) + 'M';
+        
+        // Update active orders for kitchen users
+        if (this.currentWallet && this.currentWallet.type === 'kitchen') {
+            this.updateActiveOrders();
+        }
+    }
+
+    async updateActiveOrders() {
+        if (!this.currentWallet || this.currentWallet.type !== 'kitchen') return;
+
+        try {
+            const orderCounter = await this.contracts.escrow.methods.orderCounter().call();
+            const activeOrdersList = document.getElementById('activeOrdersList');
+            const orders = [];
+
+            // Check each order to see if it belongs to current wallet and is incomplete
+            for (let i = 0; i < parseInt(orderCounter); i++) {
+                try {
+                    const order = await this.contracts.escrow.methods.orders(i).call();
+                    
+                    // Check if this order belongs to current wallet and is not completed/cancelled
+                    if (order.buyer.toLowerCase() === this.currentWallet.address.toLowerCase() && 
+                        !order.completed && !order.cancelled) {
+                        
+                        // Get asset token details (order.assetTokens is an array)
+                        let assetType = 'Unknown';
+                        let quantity = '0';
+                        
+                        // For now, assume single asset per order (first element)
+                        if (order.assetTokens && order.assetTokens.length > 0) {
+                            const assetAddress = order.assetTokens[0];
+                            if (assetAddress === this.contractAddresses.tCHICKEN) assetType = '🐔 Chickens';
+                            else if (assetAddress === this.contractAddresses.tEGG) assetType = '🥚 Eggs';
+                            
+                            if (order.assetAmounts && order.assetAmounts.length > 0) {
+                                quantity = this.web3.utils.fromWei(order.assetAmounts[0], 'ether');
+                            }
+                        }
+                        
+                        orders.push({
+                            id: i,
+                            assetType,
+                            quantity,
+                            totalCost: this.web3.utils.fromWei(order.paymentAmount, 'ether'),
+                            supplier: order.seller,
+                            paymentDeposited: order.paymentDeposited,
+                            assetsDelivered: order.assetsDelivered,
+                            expirationTime: order.expirationTime
+                        });
+                    }
+                } catch (orderError) {
+                    console.log(`Skipping order ${i}:`, orderError.message);
+                    continue;
+                }
+            }
+
+            // Update UI
+            if (orders.length === 0) {
+                activeOrdersList.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No active orders</td></tr>';
+            } else {
+                activeOrdersList.innerHTML = orders.map(order => {
+                    const status = this.getOrderStatus(order);
+                    const actions = this.getOrderActions(order);
+                    const supplierName = this.getSupplierName(order.supplier);
+                    
+                    return `
+                        <tr>
+                            <td>#${order.id}</td>
+                            <td>${order.assetType}</td>
+                            <td>${parseFloat(order.quantity).toLocaleString()}</td>
+                            <td>${parseFloat(order.totalCost).toLocaleString()} IDR</td>
+                            <td>${supplierName}</td>
+                            <td><span class="badge ${status.class}">${status.text}</span></td>
+                            <td>${actions}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+        } catch (error) {
+            console.error('Failed to update active orders:', error);
+        }
+    }
+
+    getOrderStatus(order) {
+        if (!order.paymentDeposited) {
+            return { text: 'Payment Pending', class: 'bg-warning' };
+        } else if (!order.assetsDelivered) {
+            return { text: 'Awaiting Delivery', class: 'bg-info' };
+        } else {
+            return { text: 'Ready for Verification', class: 'bg-success' };
+        }
+    }
+
+    getOrderActions(order) {
+        if (!order.paymentDeposited) {
+            return `<button class="btn btn-sm btn-primary" onclick="window.blockchainDemo.retryPayment(${order.id})">Retry Payment</button>`;
+        } else if (order.assetsDelivered) {
+            return `<button class="btn btn-sm btn-success" onclick="window.blockchainDemo.verifyOrder(${order.id})">Verify Order</button>`;
+        } else {
+            return '<span class="text-muted">Waiting for supplier</span>';
+        }
+    }
+
+    getSupplierName(address) {
+        const suppliers = {
+            [this.demoWallets.farmer1.address.toLowerCase()]: 'Happy Farm A',
+            [this.demoWallets.farmer2.address.toLowerCase()]: 'Green Valley B', 
+            [this.demoWallets.farmer3.address.toLowerCase()]: 'Sunrise Poultry C'
+        };
+        return suppliers[address.toLowerCase()] || this.formatAddress(address);
+    }
+
+    async retryPayment(orderId) {
+        try {
+            this.showLoading('Retrying payment deposit...');
+            
+            const account = this.web3.eth.accounts.privateKeyToAccount(this.currentWallet.privateKey);
+            this.web3.eth.accounts.wallet.add(account);
+            
+            const depositTx = this.contracts.escrow.methods.depositPayment(orderId);
+            await depositTx.send({
+                from: account.address,
+                gas: 200000
+            });
+            
+            this.hideLoading();
+            this.showSuccess('Payment deposited successfully!');
+            await this.refreshBalances();
+            
+        } catch (error) {
+            this.hideLoading();
+            console.error('Payment retry failed:', error);
+            this.showToast(`Failed to deposit payment: ${error.message}`, 'error');
+        }
+    }
+
+    async verifyOrder(orderId) {
+        try {
+            this.showLoading('Verifying order...');
+            
+            const account = this.web3.eth.accounts.privateKeyToAccount(this.currentWallet.privateKey);
+            this.web3.eth.accounts.wallet.add(account);
+            
+            const verifyTx = this.contracts.escrow.methods.verifyOrder(orderId);
+            await verifyTx.send({
+                from: account.address,
+                gas: 200000
+            });
+            
+            this.hideLoading();
+            this.showSuccess('Order verified successfully!');
+            await this.refreshBalances();
+            
+        } catch (error) {
+            this.hideLoading();
+            console.error('Order verification failed:', error);
+            this.showToast(`Failed to verify order: ${error.message}`, 'error');
+        }
     }
 
     async handleMintTokens() {
