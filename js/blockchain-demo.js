@@ -115,10 +115,15 @@ class BlockchainDemo {
 
     async connectToBlockchain() {
         try {
-            // Test blockchain connection
-            const response = await fetch('http://localhost:8545', {
+            console.log('Testing blockchain connection...');
+            
+            // Use proxy endpoint to avoid CORS issues
+            const testResponse = await fetch('/blockchain', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 body: JSON.stringify({
                     jsonrpc: '2.0',
                     method: 'net_version',
@@ -127,31 +132,77 @@ class BlockchainDemo {
                 })
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: Cannot reach Hardhat node`);
+            console.log('HTTP test response status:', testResponse.status);
+
+            if (!testResponse.ok) {
+                throw new Error(`HTTP ${testResponse.status}: Cannot reach Hardhat node`);
             }
 
-            const data = await response.json();
-            if (data.error) {
-                throw new Error(`RPC Error: ${data.error.message}`);
+            const testData = await testResponse.json();
+            console.log('HTTP test response data:', testData);
+
+            if (testData.error) {
+                throw new Error(`RPC Error: ${testData.error.message}`);
             }
 
-            // Initialize Web3
-            this.web3 = new Web3('http://localhost:8545');
+            console.log('HTTP test successful, initializing Web3...');
+
+            // Create custom Web3 provider using our proxy
+            const customProvider = {
+                send: async (payload, callback) => {
+                    try {
+                        const response = await fetch('/blockchain', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await response.json();
+                        callback(null, result);
+                    } catch (error) {
+                        callback(error, null);
+                    }
+                },
+                sendAsync: async (payload, callback) => {
+                    try {
+                        const response = await fetch('/blockchain', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        const result = await response.json();
+                        callback(null, result);
+                    } catch (error) {
+                        callback(error, null);
+                    }
+                }
+            };
             
-            // Verify connection
+            this.web3 = new Web3(customProvider);
+            
+            // Verify Web3 connection
+            console.log('Testing Web3 connection...');
             const networkId = await this.web3.eth.net.getId();
-            console.log(`Connected to network: ${networkId}`);
+            console.log(`Web3 connected to network: ${networkId}`);
+            
+            const blockNumber = await this.web3.eth.getBlockNumber();
+            console.log(`Current block number: ${blockNumber}`);
             
             // Setup contracts
+            console.log('Setting up contracts...');
             await this.setupContracts();
             
             this.isConnected = true;
             this.updateConnectionStatus(true);
             
+            console.log('Blockchain connection successful!');
             return true;
         } catch (error) {
             console.error('Blockchain connection failed:', error);
+            console.error('Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
             throw error;
         }
     }
