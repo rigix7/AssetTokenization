@@ -2010,7 +2010,7 @@ class BlockchainDemo {
 
         try {
             const orderCounter = await this.contracts.escrow.methods.orderCounter().call();
-            const kitchenOrdersList = document.getElementById('kitchenOrdersList');
+            const kitchenOrdersList = document.getElementById('activeOrdersList');
             const orders = [];
 
             // Check each order to see if it belongs to current kitchen (as buyer)
@@ -2073,7 +2073,7 @@ class BlockchainDemo {
 
             // Update UI
             if (orders.length === 0) {
-                kitchenOrdersList.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No orders found</td></tr>';
+                kitchenOrdersList.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No orders found</td></tr>';
             } else {
                 kitchenOrdersList.innerHTML = orders.map(order => {
                     const status = this.getKitchenOrderStatus(order);
@@ -2085,6 +2085,7 @@ class BlockchainDemo {
                             <td>${this.formatNumber(order.totalPayment)} tIDR</td>
                             <td>${order.supplier}</td>
                             <td><span class="badge ${status.class}">${status.text}</span></td>
+                            <td>-</td>
                         </tr>
                     `;
                 }).join('');
@@ -2092,9 +2093,9 @@ class BlockchainDemo {
 
         } catch (error) {
             console.error('Failed to update kitchen orders:', error);
-            const kitchenOrdersList = document.getElementById('kitchenOrdersList');
+            const kitchenOrdersList = document.getElementById('activeOrdersList');
             if (kitchenOrdersList) {
-                kitchenOrdersList.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading orders</td></tr>';
+                kitchenOrdersList.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading orders</td></tr>';
             }
         }
     }
