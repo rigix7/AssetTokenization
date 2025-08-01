@@ -879,29 +879,7 @@ class BlockchainDemo {
         }
     }
 
-    async deliverAssets(orderId) {
-        try {
-            this.showLoading('Delivering assets...');
-            
-            const account = this.web3.eth.accounts.privateKeyToAccount(this.currentWallet.privateKey);
-            this.web3.eth.accounts.wallet.add(account);
-            
-            const deliverTx = this.contracts.escrow.methods.deliverAssets(orderId);
-            await deliverTx.send({
-                from: account.address,
-                gas: 300000
-            });
-            
-            this.hideLoading();
-            this.showSuccess('Assets delivered successfully!');
-            await this.refreshBalances();
-            
-        } catch (error) {
-            this.hideLoading();
-            console.error('Asset delivery failed:', error);
-            this.showToast(`Failed to deliver assets: ${error.message}`, 'error');
-        }
-    }
+
 
     async verifyOrder(orderId) {
         try {
@@ -1683,6 +1661,11 @@ class BlockchainDemo {
         document.getElementById('txHashLink').href = `#tx-${txHash}`;
         const modal = new bootstrap.Modal(document.getElementById('successModal'));
         modal.show();
+        
+        // Auto-dismiss after 3 seconds to prevent overlay issues
+        setTimeout(() => {
+            modal.hide();
+        }, 3000);
     }
 
     showToast(message, type) {
