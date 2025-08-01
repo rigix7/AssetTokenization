@@ -1318,9 +1318,9 @@ class BlockchainDemo {
             let contractsTotal = 5;
             
             try {
-                // Test authority contract - use a simpler method
-                const authorityTest = await this.contracts.authority.methods.owner().call();
-                if (authorityTest !== null && authorityTest !== '0x' && authorityTest !== '0x0000000000000000000000000000000000000000') contractsWorking++;
+                // Test authority contract - use verificationCounter method
+                const authorityTest = await this.contracts.authority.methods.verificationCounter().call();
+                if (authorityTest !== null && authorityTest !== '0x') contractsWorking++;
             } catch (e) { console.log('Authority contract test failed:', e.message); }
             
             try {
