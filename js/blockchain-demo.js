@@ -1701,8 +1701,8 @@ class BlockchainDemo {
 
     getCustomerName(address) {
         const customers = {
-            [this.demoWallets.kitchen1.address.toLowerCase()]: 'Kitchen Alpha',
-            [this.demoWallets.kitchen2.address.toLowerCase()]: 'Kitchen Beta'
+            [this.demoWallets.kitchen_a.address.toLowerCase()]: 'Kitchen Alpha',
+            [this.demoWallets.kitchen_b.address.toLowerCase()]: 'Kitchen Beta'
         };
         return customers[address.toLowerCase()] || this.formatAddress(address);
     }
