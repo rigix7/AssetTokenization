@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/home/runner/workspace/contracts/SimpleAgricultureToken.sol": {
-      "lastModificationDate": 1753816872500,
-      "contentHash": "91be9bd5281faa90c13e75e8d21031ba",
+      "lastModificationDate": 1754031977351,
+      "contentHash": "5ce9e4bf1f9c3ec2ff8b5ba5672a8234",
       "sourceName": "contracts/SimpleAgricultureToken.sol",
       "solcConfig": {
         "version": "0.8.20",

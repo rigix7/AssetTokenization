@@ -103,6 +103,23 @@ contract SimpleAgricultureToken is ERC20, AccessControl, Pausable {
             emit AssetExpired(holder, balance);
         }
     }
+
+    /**
+     * @dev Allow farmers to burn their own assets early (for spoilage, disposal, etc.)
+     */
+    function burnOwnAssets(uint256 amount, string memory reason) external {
+        require(amount > 0, "Amount must be greater than 0");
+        require(balanceOf(msg.sender) >= amount, "Insufficient balance");
+        
+        _burn(msg.sender, amount);
+        
+        // If burning all tokens, reset verification status
+        if (balanceOf(msg.sender) == 0) {
+            assetVerificationStatus[msg.sender] = false;
+        }
+        
+        emit AssetExpired(msg.sender, amount);
+    }
     
     /**
      * @dev Check if assets are valid (verified and not expired)

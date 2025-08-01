@@ -60,6 +60,7 @@ const translations = {
             recipient_address: "Recipient Address",
             quantity: "Quantity",
             send_assets: "Send Assets",
+            burn_assets: "Burn/Dispose Assets",
             asset_status: "Asset Status",
             farm_location: "Farm Location A",
             chicken_coop: "Chicken Coop 1",

@@ -37,6 +37,7 @@ export interface SimpleAgricultureTokenInterface extends Interface {
       | "assetVerificationStatus"
       | "balanceOf"
       | "burnExpiredTokens"
+      | "burnOwnAssets"
       | "centralAuthority"
       | "decimals"
       | "defaultExpiryPeriod"
@@ -118,6 +119,10 @@ export interface SimpleAgricultureTokenInterface extends Interface {
   encodeFunctionData(
     functionFragment: "burnExpiredTokens",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burnOwnAssets",
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "centralAuthority",
@@ -232,6 +237,10 @@ export interface SimpleAgricultureTokenInterface extends Interface {
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "burnExpiredTokens",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "burnOwnAssets",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -550,6 +559,12 @@ export interface SimpleAgricultureToken extends BaseContract {
     "nonpayable"
   >;
 
+  burnOwnAssets: TypedContractMethod<
+    [amount: BigNumberish, reason: string],
+    [void],
+    "nonpayable"
+  >;
+
   centralAuthority: TypedContractMethod<[], [string], "view">;
 
   decimals: TypedContractMethod<[], [bigint], "view">;
@@ -719,6 +734,13 @@ export interface SimpleAgricultureToken extends BaseContract {
   getFunction(
     nameOrSignature: "burnExpiredTokens"
   ): TypedContractMethod<[holder: AddressLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "burnOwnAssets"
+  ): TypedContractMethod<
+    [amount: BigNumberish, reason: string],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "centralAuthority"
   ): TypedContractMethod<[], [string], "view">;

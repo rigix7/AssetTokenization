@@ -361,6 +361,16 @@ class BlockchainDemo {
                 "outputs": [{"name": "", "type": "uint256"}],
                 "stateMutability": "view",
                 "type": "function"
+            },
+            {
+                "inputs": [
+                    {"name": "amount", "type": "uint256"},
+                    {"name": "reason", "type": "string"}
+                ],
+                "name": "burnOwnAssets",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
             }
         ];
 
@@ -480,6 +490,11 @@ class BlockchainDemo {
             e.preventDefault();
             console.log('Purchase form submitted');
             this.handlePurchaseTokens();
+        });
+
+        document.getElementById('burnAssetsForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleBurnAssets();
         });
 
         // Add price calculation listener
@@ -879,6 +894,71 @@ class BlockchainDemo {
             this.hideLoading();
             console.error('Transfer failed:', error);
             this.showToast(`Failed to transfer tokens: ${error.message}`, 'error');
+        }
+    }
+
+    async handleBurnAssets() {
+        if (!this.currentWallet) {
+            this.showToast('Please select a wallet first', 'error');
+            return;
+        }
+
+        if (!this.isConnected) {
+            this.showToast('Please connect to blockchain first', 'error');
+            return;
+        }
+
+        if (this.currentWallet.type !== 'farmer') {
+            this.showToast('Only farmers can burn assets', 'error');
+            return;
+        }
+
+        const assetType = document.getElementById('burnAssetType').value;
+        const quantity = document.getElementById('burnQuantity').value;
+        const reason = document.getElementById('burnReason').value;
+
+        if (!assetType || !quantity || !reason) {
+            this.showToast('Please fill all fields', 'error');
+            return;
+        }
+
+        try {
+            this.showLoading('Burning assets...');
+
+            const contract = this.contracts[assetType];
+            const quantityWei = this.web3.utils.toWei(quantity, 'ether');
+
+            const account = this.web3.eth.accounts.privateKeyToAccount(this.currentWallet.privateKey);
+            this.web3.eth.accounts.wallet.add(account);
+
+            // Check balance first
+            const balance = await contract.methods.balanceOf(account.address).call();
+            if (this.web3.utils.toBN(balance).lt(this.web3.utils.toBN(quantityWei))) {
+                throw new Error('Insufficient balance');
+            }
+
+            const tx = contract.methods.burnOwnAssets(quantityWei, reason);
+
+            const gas = await tx.estimateGas({ from: account.address });
+            const gasPrice = await this.web3.eth.getGasPrice();
+
+            const receipt = await tx.send({
+                from: account.address,
+                gas: Math.floor(gas * 1.2),
+                gasPrice: gasPrice
+            });
+
+            this.hideLoading();
+            this.showSuccess(`Successfully burned ${quantity} ${assetType} (Reason: ${reason})`, receipt.transactionHash);
+            
+            // Reset form and refresh balances
+            document.getElementById('burnAssetsForm').reset();
+            await this.refreshBalances();
+
+        } catch (error) {
+            this.hideLoading();
+            console.error('Burn failed:', error);
+            this.showToast(`Failed to burn assets: ${error.message}`, 'error');
         }
     }
 
