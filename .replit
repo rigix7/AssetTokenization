@@ -31,6 +31,10 @@ args = "Demo Setup Check"
 task = "workflow.run"
 args = "Setup Demo Roles"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Clean Deploy"
+
 [[workflows.workflow]]
 name = "Web Interface"
 author = "agent"
@@ -72,6 +76,14 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npx hardhat run scripts/setup-demo-roles.ts --network localhost"
+
+[[workflows.workflow]]
+name = "Clean Deploy"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx hardhat run scripts/deploy-clean.ts --network localhost"
 
 [[ports]]
 localPort = 3000
