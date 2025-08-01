@@ -744,7 +744,7 @@ class BlockchainDemo {
 
     getOrderActions(order) {
         if (!order.paymentDeposited) {
-            return `<button class="btn btn-sm btn-primary" onclick="window.blockchainDemo.retryPayment(${order.id})">Retry Payment</button>`;
+            return `<button class="btn btn-sm btn-primary" onclick="window.blockchainDemo.depositPayment(${order.id})">Deposit Payment</button>`;
         } else if (order.assetsDelivered) {
             return `<button class="btn btn-sm btn-success" onclick="window.blockchainDemo.verifyOrder(${order.id})">Verify Order</button>`;
         } else {
@@ -769,9 +769,9 @@ class BlockchainDemo {
         return customers[address.toLowerCase()] || this.formatAddress(address);
     }
 
-    async retryPayment(orderId) {
+    async depositPayment(orderId) {
         try {
-            this.showLoading('Retrying payment deposit...');
+            this.showLoading('Depositing payment...');
             
             const account = this.web3.eth.accounts.privateKeyToAccount(this.currentWallet.privateKey);
             this.web3.eth.accounts.wallet.add(account);
@@ -788,8 +788,146 @@ class BlockchainDemo {
             
         } catch (error) {
             this.hideLoading();
-            console.error('Payment retry failed:', error);
+            console.error('Payment deposit failed:', error);
             this.showToast(`Failed to deposit payment: ${error.message}`, 'error');
+        }
+    }
+
+    async retryPayment(orderId) {
+        return this.depositPayment(orderId);
+    }
+
+    async updateFarmerOrders() {
+        if (!this.currentWallet || this.currentWallet.type !== 'farmer') return;
+
+        try {
+            const orderCounter = await this.contracts.escrow.methods.orderCounter().call();
+            const farmerOrdersList = document.getElementById('farmerOrdersList');
+            const orders = [];
+
+            // Check each order to see if it belongs to current wallet (as seller) and needs action
+            for (let i = 0; i < parseInt(orderCounter); i++) {
+                try {
+                    // Use low-level call to avoid automatic BigNumber conversion
+                    const orderData = await this.web3.eth.call({
+                        to: this.contractAddresses.escrow,
+                        data: this.web3.eth.abi.encodeFunctionCall({
+                            name: 'orders',
+                            type: 'function',
+                            inputs: [{'name': 'orderId', 'type': 'uint256'}]
+                        }, [i])
+                    });
+                    
+                    // Parse the hex data manually to avoid automatic BigNumber conversion
+                    const order = this.parseOrderDataSafely(orderData);
+                    
+                    // Check if this order belongs to current wallet as seller and is not completed/cancelled
+                    if (order && order.seller && order.seller.toLowerCase() === this.currentWallet.address.toLowerCase() && 
+                        !order.completed && !order.cancelled) {
+                        
+                        // Get asset token details
+                        let assetType = 'Unknown';
+                        let quantity = '0';
+                        
+                        if (order.assetTokens && order.assetTokens.length > 0) {
+                            const assetAddress = order.assetTokens[0];
+                            if (assetAddress.toLowerCase() === this.contractAddresses.tCHICKEN.toLowerCase()) assetType = '🐔 Chickens';
+                            else if (assetAddress.toLowerCase() === this.contractAddresses.tEGG.toLowerCase()) assetType = '🥚 Eggs';
+                            
+                            if (order.assetAmounts && order.assetAmounts.length > 0) {
+                                quantity = this.web3.utils.fromWei(order.assetAmounts[0].toString(), 'ether');
+                            }
+                        }
+                        
+                        orders.push({
+                            id: i,
+                            assetType,
+                            quantity,
+                            totalPayment: this.web3.utils.fromWei(order.paymentAmount.toString(), 'ether'),
+                            buyer: order.buyer,
+                            paymentDeposited: order.paymentDeposited,
+                            assetsDelivered: order.assetsDelivered,
+                            expirationTime: order.expirationTime
+                        });
+                    }
+                } catch (orderError) {
+                    console.log(`Error parsing farmer order ${i}:`, orderError.message);
+                    continue;
+                }
+            }
+
+            // Update UI
+            if (orders.length === 0) {
+                farmerOrdersList.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No active orders</td></tr>';
+            } else {
+                farmerOrdersList.innerHTML = orders.map(order => {
+                    const status = this.getFarmerOrderStatus(order);
+                    const actions = this.getFarmerOrderActions(order);
+                    const buyerName = this.getCustomerName(order.buyer);
+                    
+                    return `
+                        <tr>
+                            <td>#${order.id}</td>
+                            <td>${order.assetType}</td>
+                            <td>${parseFloat(order.quantity).toLocaleString()}</td>
+                            <td>${parseFloat(order.totalPayment).toLocaleString()} IDR</td>
+                            <td>${buyerName}</td>
+                            <td><span class="badge ${status.class}">${status.text}</span></td>
+                            <td>${actions}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+        } catch (error) {
+            console.error('Error updating farmer orders:', error);
+            if (document.getElementById('farmerOrdersList')) {
+                document.getElementById('farmerOrdersList').innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading orders</td></tr>';
+            }
+        }
+    }
+
+    getFarmerOrderStatus(order) {
+        if (!order.paymentDeposited) {
+            return { text: 'Waiting for Payment', class: 'bg-warning' };
+        } else if (!order.assetsDelivered) {
+            return { text: 'Payment Received - Deliver Assets', class: 'bg-info' };
+        } else {
+            return { text: 'Assets Delivered - Awaiting Verification', class: 'bg-primary' };
+        }
+    }
+
+    getFarmerOrderActions(order) {
+        if (!order.paymentDeposited) {
+            return '<span class="text-muted">Waiting for buyer</span>';
+        } else if (!order.assetsDelivered) {
+            return `<button class="btn btn-sm btn-success" onclick="window.blockchainDemo.deliverAssets(${order.id})">Deliver Assets</button>`;
+        } else {
+            return '<span class="text-muted">Waiting for verification</span>';
+        }
+    }
+
+    async deliverAssets(orderId) {
+        try {
+            this.showLoading('Delivering assets...');
+            
+            const account = this.web3.eth.accounts.privateKeyToAccount(this.currentWallet.privateKey);
+            this.web3.eth.accounts.wallet.add(account);
+            
+            const deliverTx = this.contracts.escrow.methods.deliverAssets(orderId);
+            await deliverTx.send({
+                from: account.address,
+                gas: 300000
+            });
+            
+            this.hideLoading();
+            this.showSuccess('Assets delivered successfully!');
+            await this.refreshBalances();
+            
+        } catch (error) {
+            this.hideLoading();
+            console.error('Asset delivery failed:', error);
+            this.showToast(`Failed to deliver assets: ${error.message}`, 'error');
         }
     }
 
