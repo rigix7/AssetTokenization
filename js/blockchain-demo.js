@@ -102,7 +102,7 @@ class BlockchainDemo {
             return true;
         } catch (error) {
             console.error('Failed to initialize demo platform:', error);
-            this.updateConnectionStatus(false, error.message);
+            this.updateContractStatus().catch(() => {}); // Update status to show error
             return false;
         }
     }
@@ -217,9 +217,13 @@ class BlockchainDemo {
             this.displayContractInfo();
             
             this.isConnected = true;
-            this.updateConnectionStatus(true);
+            this.updateContractStatus();
             
             console.log('Blockchain connection successful!');
+            
+            // Start periodic status updates
+            this.startStatusUpdates();
+            
             return true;
         } catch (error) {
             console.error('Blockchain connection failed:', error);
@@ -1333,39 +1337,143 @@ class BlockchainDemo {
         }
     }
 
-    updateConnectionStatus(connected, errorMsg = '') {
-        const status = document.getElementById('connectionStatus');
-        if (connected) {
-            status.className = 'demo-connection';
-            status.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
-            status.innerHTML = `
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="col">
-                        <strong>Connected to Hardhat Network</strong>
-                        <br><small>Ready for smart contract interactions</small>
-                    </div>
-                </div>
-            `;
-        } else {
-            status.className = 'demo-connection';
-            status.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
-            status.innerHTML = `
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="col">
-                        <strong>Connection Failed</strong>
-                        <br><small>${errorMsg || 'Cannot connect to blockchain at localhost:8545'}</small>
-                    </div>
-                    <div class="col-auto">
-                        <button class="btn btn-light btn-sm" onclick="location.reload()">Retry</button>
-                    </div>
-                </div>
-            `;
+    async updateContractStatus() {
+        try {
+            // Update block number
+            const blockNumber = await this.web3.eth.getBlockNumber();
+            document.getElementById('blockInfo').textContent = `Block: ${blockNumber}`;
+            
+            // Test if contracts are responding (not returning empty responses)
+            let contractsWorking = 0;
+            let contractsTotal = 5;
+            
+            try {
+                // Test authority contract
+                const authorityTest = await this.contracts.authority.methods.hasRole(
+                    '0x0000000000000000000000000000000000000000000000000000000000000000', // DEFAULT_ADMIN_ROLE
+                    this.demoWallets.authority.address
+                ).call();
+                if (authorityTest !== null && authorityTest !== undefined) contractsWorking++;
+            } catch (e) { console.log('Authority contract test failed:', e.message); }
+            
+            try {
+                // Test token contracts
+                const chickenTest = await this.contracts.tCHICKEN.methods.totalSupply().call();
+                if (chickenTest !== null && chickenTest !== '0x') contractsWorking++;
+                
+                const eggTest = await this.contracts.tEGG.methods.totalSupply().call();
+                if (eggTest !== null && eggTest !== '0x') contractsWorking++;
+                
+                const idrTest = await this.contracts.tIDR.methods.totalSupply().call();
+                if (idrTest !== null && idrTest !== '0x') contractsWorking++;
+            } catch (e) { console.log('Token contract test failed:', e.message); }
+            
+            try {
+                // Test escrow contract
+                const escrowTest = await this.contracts.escrow.methods.orderCounter().call();
+                if (escrowTest !== null && escrowTest !== '0x') contractsWorking++;
+            } catch (e) { console.log('Escrow contract test failed:', e.message); }
+            
+            // Update contract status
+            document.getElementById('contractInfo').textContent = `Contracts: ${contractsWorking}/${contractsTotal}`;
+            
+            // Update status display
+            const statusSpinner = document.getElementById('statusSpinner');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusText = document.getElementById('statusText');
+            const contractStatus = document.getElementById('contractStatus');
+            
+            if (contractsWorking === contractsTotal) {
+                // All contracts working
+                statusSpinner.style.display = 'none';
+                statusIcon.style.display = 'inline';
+                statusIcon.innerHTML = '<i class="fas fa-check-circle text-success"></i>';
+                statusText.innerHTML = '<strong>Smart Contracts Connected</strong><br><small class="text-muted">All contracts responding correctly</small>';
+                contractStatus.className = 'card border-success border-0 shadow-sm';
+            } else if (contractsWorking === 0) {
+                // No contracts working - likely wrong addresses
+                statusSpinner.style.display = 'none';
+                statusIcon.style.display = 'inline';
+                statusIcon.innerHTML = '<i class="fas fa-exclamation-triangle text-warning"></i>';
+                statusText.innerHTML = '<strong>Contract Address Mismatch</strong><br><small class="text-muted">Contracts not found at loaded addresses - click Refresh</small>';
+                contractStatus.className = 'card border-warning border-0 shadow-sm';
+            } else {
+                // Some contracts working
+                statusSpinner.style.display = 'none';
+                statusIcon.style.display = 'inline';
+                statusIcon.innerHTML = '<i class="fas fa-exclamation-circle text-info"></i>';
+                statusText.innerHTML = '<strong>Partial Contract Connection</strong><br><small class="text-muted">Some contracts responding</small>';
+                contractStatus.className = 'card border-info border-0 shadow-sm';
+            }
+            
+            // Update contract addresses display
+            this.updateContractAddressDisplay();
+            
+        } catch (error) {
+            console.error('Status update failed:', error);
+            document.getElementById('statusSpinner').style.display = 'none';
+            document.getElementById('statusIcon').style.display = 'inline';
+            document.getElementById('statusIcon').innerHTML = '<i class="fas fa-times-circle text-danger"></i>';
+            document.getElementById('statusText').innerHTML = '<strong>Connection Error</strong><br><small class="text-muted">Cannot communicate with blockchain</small>';
+            document.getElementById('contractStatus').className = 'card border-danger border-0 shadow-sm';
+        }
+    }
+    
+    updateContractAddressDisplay() {
+        if (this.contractAddresses) {
+            document.getElementById('authorityAddr').textContent = this.formatAddress(this.contractAddresses.authority);
+            document.getElementById('escrowAddr').textContent = this.formatAddress(this.contractAddresses.escrow);
+            document.getElementById('chickenAddr').textContent = this.formatAddress(this.contractAddresses.tCHICKEN);
+            document.getElementById('eggAddr').textContent = this.formatAddress(this.contractAddresses.tEGG);
+            document.getElementById('idrAddr').textContent = this.formatAddress(this.contractAddresses.tIDR);
+        }
+    }
+    
+    async refreshContractConnection() {
+        console.log('Refreshing contract connection...');
+        
+        // Show loading state
+        document.getElementById('statusSpinner').style.display = 'inline-block';
+        document.getElementById('statusIcon').style.display = 'none';
+        document.getElementById('statusText').innerHTML = '<strong>Refreshing Contracts...</strong><br><small class="text-muted">Reloading addresses and testing connections</small>';
+        
+        try {
+            // Reload contract addresses
+            await this.loadContractAddresses();
+            
+            // Reconnect to blockchain and setup contracts
+            await this.connectToBlockchain();
+            
+            // Update status
+            await this.updateContractStatus();
+            
+            // Refresh balances if wallet is selected
+            if (this.currentWallet) {
+                await this.refreshBalances();
+            }
+            
+            this.showToast('Contract connection refreshed successfully!', 'success');
+            
+        } catch (error) {
+            console.error('Refresh failed:', error);
+            this.showToast('Failed to refresh contract connection', 'error');
+        }
+    }
+    
+    startStatusUpdates() {
+        // Update status immediately
+        this.updateContractStatus();
+        
+        // Update every 10 seconds
+        this.statusInterval = setInterval(() => {
+            this.updateContractStatus();
+        }, 10000);
+    }
+    
+    stopStatusUpdates() {
+        if (this.statusInterval) {
+            clearInterval(this.statusInterval);
+            this.statusInterval = null;
         }
     }
 

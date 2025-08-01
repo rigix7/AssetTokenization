@@ -67,20 +67,58 @@
         </div>
     </nav>
 
-    <!-- Demo Connection Status -->
+    <!-- Smart Contract Status Bar -->
     <div class="container mt-3">
-        <div id="connectionStatus" class="demo-connection">
-            <div class="row align-items-center">
-                <div class="col-auto">
-                    <div class="spinner-border spinner-border-sm" role="status"></div>
+        <div id="contractStatus" class="card border-0 shadow-sm">
+            <div class="card-body py-2">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div id="statusIndicator" class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status" id="statusSpinner"></div>
+                            <span id="statusIcon" class="me-2" style="display: none;">
+                                <i class="fas fa-check-circle text-success"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div id="statusText">
+                            <strong>Initializing Smart Contracts...</strong>
+                            <br><small class="text-muted">Loading contract addresses and testing connections</small>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <small class="text-muted me-3" id="blockInfo">Block: --</small>
+                        <small class="text-muted me-3" id="contractInfo">Contracts: --</small>
+                        <button class="btn btn-outline-primary btn-sm" onclick="window.demoApp.refreshContractConnection()" id="refreshBtn">
+                            <i class="fas fa-sync-alt me-1"></i> Refresh
+                        </button>
+                    </div>
                 </div>
-                <div class="col">
-                    <strong>Connecting to Local Blockchain...</strong>
-                    <br><small>Testing connection to Hardhat node at localhost:8545</small>
+                
+                <!-- Contract Address Details (Collapsible) -->
+                <div class="collapse mt-2" id="contractDetails">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <strong>Core Contracts:</strong><br>
+                                Authority: <code id="authorityAddr">--</code><br>
+                                Escrow: <code id="escrowAddr">--</code>
+                            </small>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <strong>Asset Tokens:</strong><br>
+                                tCHICKEN: <code id="chickenAddr">--</code><br>
+                                tEGG: <code id="eggAddr">--</code><br>
+                                tIDR: <code id="idrAddr">--</code>
+                            </small>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-auto">
-                    <button class="btn btn-light btn-sm" onclick="connectToBlockchain()" data-i18n="connection.connect_direct">
-                        Connect Now
+                
+                <div class="text-center mt-1">
+                    <button class="btn btn-link btn-sm text-muted p-0" data-bs-toggle="collapse" data-bs-target="#contractDetails">
+                        <small>Show Contract Details <i class="fas fa-chevron-down"></i></small>
                     </button>
                 </div>
             </div>
