@@ -1001,8 +1001,11 @@ class BlockchainDemo {
                 message: error.message,
                 stack: error.stack,
                 assetType: assetType,
-                contractAddress: this.contractAddresses[assetType],
-                contractMethods: contract && contract.methods ? Object.keys(contract.methods) : 'no contract or methods'
+                contractAddress: this.contractAddresses ? this.contractAddresses[assetType] : 'no addresses loaded',
+                contractExists: !!contract,
+                contractMethods: contract && contract.methods ? Object.keys(contract.methods) : 'no contract or methods',
+                isConnected: this.isConnected,
+                currentWallet: this.currentWallet ? this.currentWallet.address : 'no wallet'
             });
             this.showToast(`Failed to burn assets: ${error.message}`, 'error');
         }
