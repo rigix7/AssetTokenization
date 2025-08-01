@@ -233,14 +233,46 @@ class BlockchainDemo {
         const authorityABI = [
             {
                 "inputs": [
-                    {"name": "tokenType", "type": "string"},
-                    {"name": "amount", "type": "uint256"},
+                    {"name": "tokenAddress", "type": "address"},
                     {"name": "recipient", "type": "address"},
-                    {"name": "expiryDays", "type": "uint256"}
+                    {"name": "amount", "type": "uint256"},
+                    {"name": "createdAt", "type": "uint256"},
+                    {"name": "expiryTimestamp", "type": "uint256"},
+                    {"name": "location", "type": "string"}
                 ],
-                "name": "verifyAndMintTokens",
+                "name": "authorizeTokenMinting",
                 "outputs": [],
                 "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"name": "supplierAddress", "type": "address"},
+                    {"name": "name", "type": "string"},
+                    {"name": "location", "type": "string"},
+                    {"name": "assetTypes", "type": "string[]"}
+                ],
+                "name": "registerSupplier",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"name": "supplierAddress", "type": "address"}
+                ],
+                "name": "approveSupplier",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"name": "supplier", "type": "address"}
+                ],
+                "name": "isSupplierApproved",
+                "outputs": [{"name": "", "type": "bool"}],
+                "stateMutability": "view",
                 "type": "function"
             }
         ];
@@ -459,12 +491,47 @@ class BlockchainDemo {
 
             const expiryDays = tokenType === 'tCHICKEN' ? 30 : tokenType === 'tEGG' ? 14 : 90;
             const amountWei = this.web3.utils.toWei(amount, 'ether');
+            
+            // Calculate expiry timestamp
+            const now = Math.floor(Date.now() / 1000);
+            const expiryTimestamp = now + (expiryDays * 24 * 60 * 60);
 
             const account = this.web3.eth.accounts.privateKeyToAccount(this.currentWallet.privateKey);
             this.web3.eth.accounts.wallet.add(account);
 
-            const tx = this.contracts.authority.methods.verifyAndMintTokens(
-                tokenType, amountWei, recipient, expiryDays
+            // First ensure the recipient is registered and approved as a supplier
+            const isApproved = await this.contracts.authority.methods.isSupplierApproved(recipient).call();
+            if (!isApproved && recipient !== account.address) {
+                // Register and approve the supplier first
+                console.log('Registering new supplier...');
+                const registerTx = this.contracts.authority.methods.registerSupplier(
+                    recipient, 
+                    'Demo Supplier', 
+                    'Demo Location', 
+                    [tokenType]
+                );
+                await registerTx.send({
+                    from: account.address,
+                    gas: 500000
+                });
+
+                const approveTx = this.contracts.authority.methods.approveSupplier(recipient);
+                await approveTx.send({
+                    from: account.address,
+                    gas: 100000
+                });
+            }
+
+            // Get the token contract address
+            const tokenAddress = this.contractAddresses[tokenType];
+
+            const tx = this.contracts.authority.methods.authorizeTokenMinting(
+                tokenAddress,
+                recipient,
+                amountWei,
+                now,
+                expiryTimestamp,
+                'Demo Location'
             );
 
             const gas = await tx.estimateGas({ from: account.address });
