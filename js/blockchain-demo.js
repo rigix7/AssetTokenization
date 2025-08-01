@@ -1646,26 +1646,63 @@ class BlockchainDemo {
     }
 
     showLoading(message) {
+        // Clean up any existing modals first
+        this.hideAllModals();
+        
         document.getElementById('loadingText').textContent = message;
         const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
         modal.show();
+        this.currentModal = modal;
     }
 
     hideLoading() {
+        if (this.currentModal) {
+            this.currentModal.hide();
+            this.currentModal = null;
+        }
+        // Also try to get instance and hide it
         const modal = bootstrap.Modal.getInstance(document.getElementById('loadingModal'));
         if (modal) modal.hide();
+        
+        // Force cleanup of any modal backdrops
+        setTimeout(() => {
+            this.cleanupModalBackdrops();
+        }, 100);
     }
 
     showSuccess(message, txHash) {
-        document.getElementById('successMessage').textContent = message;
-        document.getElementById('txHashLink').href = `#tx-${txHash}`;
-        const modal = new bootstrap.Modal(document.getElementById('successModal'));
-        modal.show();
+        // First ensure loading modal is completely hidden
+        this.hideLoading();
         
-        // Auto-dismiss after 3 seconds to prevent overlay issues
+        // Wait a moment for loading modal to fully close
         setTimeout(() => {
-            modal.hide();
-        }, 3000);
+            // Use toast instead of modal to avoid overlay issues
+            this.showToast(message, 'success');
+        }, 200);
+    }
+
+    hideAllModals() {
+        // Hide all modal instances
+        const modals = ['loadingModal', 'successModal'];
+        modals.forEach(modalId => {
+            const modalInstance = bootstrap.Modal.getInstance(document.getElementById(modalId));
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+        });
+        this.cleanupModalBackdrops();
+    }
+
+    cleanupModalBackdrops() {
+        // Remove any stuck modal backdrops
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+        
+        // Remove modal-open class from body
+        document.body.classList.remove('modal-open');
+        
+        // Reset body padding
+        document.body.style.paddingRight = '';
     }
 
     showToast(message, type) {
