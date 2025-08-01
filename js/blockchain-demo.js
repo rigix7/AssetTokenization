@@ -669,7 +669,7 @@ class BlockchainDemo {
                     const order = this.parseOrderDataSafely(orderData);
                     
                     // Check if this order belongs to current wallet and is not completed/cancelled
-                    if (order.buyer.toLowerCase() === this.currentWallet.address.toLowerCase() && 
+                    if (order && order.buyer && order.buyer.toLowerCase() === this.currentWallet.address.toLowerCase() && 
                         !order.completed && !order.cancelled) {
                         
                         // Get asset token details (order.assetTokens is an array)
@@ -1279,63 +1279,34 @@ class BlockchainDemo {
     // Safe parsing function to handle BigNumber overflow issues
     parseOrderDataSafely(hexData) {
         try {
-            // Remove 0x prefix and parse 32-byte chunks
-            const cleanHex = hexData.startsWith('0x') ? hexData.slice(2) : hexData;
-            const chunks = [];
+            // Use Web3 ABI decoding but handle BigNumbers carefully
+            const decoded = this.web3.eth.abi.decodeParameters([
+                'address', 'address', 'address', 'address[]', 'uint256[]', 
+                'uint256', 'uint256', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool', 'bool'
+            ], hexData);
             
-            // Parse in 64-character (32-byte) chunks
-            for (let i = 0; i < cleanHex.length; i += 64) {
-                chunks.push(cleanHex.slice(i, i + 64));
-            }
-
-            if (chunks.length < 14) {
-                throw new Error('Insufficient data chunks for order parsing');
-            }
-
-            // Parse addresses (first 3 chunks are addresses)
-            const buyer = '0x' + chunks[0].slice(24); // Remove leading zeros for address
-            const seller = '0x' + chunks[1].slice(24);
-            const paymentToken = '0x' + chunks[2].slice(24);
-
-            // Parse asset tokens array (skip dynamic array parsing for simplicity)
-            // For now, assume single asset per order from contract design
-            const assetTokens = [this.contractAddresses.tCHICKEN]; // Default to chicken
+            // Convert BigNumbers to safe strings to avoid overflow
+            const safePaymentAmount = decoded[5].toString();
+            const safeExpirationTime = decoded[6].toString();
             
-            // Parse asset amounts - use safe BigNumber handling
-            const assetAmounts = [this.web3.utils.toWei('100', 'ether')]; // Default amount
+            // Convert array of BigNumbers to strings
+            const safeAssetAmounts = decoded[4].map(amount => amount.toString());
             
-            // Parse payment amount safely (chunk 5)
-            let paymentAmount = '0';
-            try {
-                const paymentHex = chunks[5];
-                paymentAmount = this.web3.utils.hexToNumberString('0x' + paymentHex);
-            } catch {
-                paymentAmount = this.web3.utils.toWei('1000000', 'ether'); // Default 1M IDR
-            }
-
-            // Parse booleans (chunks 7-13)
-            const paymentDeposited = parseInt(chunks[7], 16) === 1;
-            const assetsDelivered = parseInt(chunks[8], 16) === 1;
-            const buyerVerified = parseInt(chunks[9], 16) === 1;
-            const sellerVerified = parseInt(chunks[10], 16) === 1;
-            const authorityVerified = parseInt(chunks[11], 16) === 1;
-            const completed = parseInt(chunks[12], 16) === 1;
-            const cancelled = parseInt(chunks[13], 16) === 1;
-
             return {
-                buyer,
-                seller,
-                paymentToken,
-                assetTokens,
-                assetAmounts,
-                paymentAmount,
-                paymentDeposited,
-                assetsDelivered,
-                buyerVerified,
-                sellerVerified,
-                authorityVerified,
-                completed,
-                cancelled
+                buyer: decoded[0],
+                seller: decoded[1],
+                paymentToken: decoded[2],
+                assetTokens: decoded[3],
+                assetAmounts: safeAssetAmounts,
+                paymentAmount: safePaymentAmount,
+                expirationTime: safeExpirationTime,
+                paymentDeposited: decoded[7],
+                assetsDelivered: decoded[8],
+                buyerVerified: decoded[9],
+                sellerVerified: decoded[10],
+                authorityVerified: decoded[11],
+                completed: decoded[12],
+                cancelled: decoded[13]
             };
         } catch (error) {
             console.error('Safe parsing failed:', error);
@@ -1381,7 +1352,9 @@ class BlockchainDemo {
                             else if (assetAddress.toLowerCase() === this.contractAddresses.tEGG.toLowerCase()) assetType = '🥚 Eggs';
                             
                             if (order.assetAmounts && order.assetAmounts.length > 0) {
-                                quantity = this.web3.utils.fromWei(order.assetAmounts[0], 'ether');
+                                // Use safe BigNumber string conversion
+                                const amountStr = order.assetAmounts[0];
+                                quantity = this.web3.utils.fromWei(amountStr, 'ether');
                             }
                         }
                         
