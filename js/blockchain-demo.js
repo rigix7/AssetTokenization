@@ -378,6 +378,17 @@ class BlockchainDemo {
         this.displayContractInfo();
     }
 
+    updateTotalCost() {
+        const quantity = document.getElementById('purchaseAmount')?.value || 0;
+        const price = document.getElementById('purchasePrice')?.value || 0;
+        const total = parseFloat(quantity) * parseFloat(price);
+        
+        const display = document.getElementById('totalCostDisplay');
+        if (display) {
+            display.textContent = total ? `${total.toLocaleString()} IDR` : '0 IDR';
+        }
+    }
+
     createWalletGrid() {
         const walletGrid = document.getElementById('walletGrid');
         walletGrid.innerHTML = '';
@@ -462,6 +473,13 @@ class BlockchainDemo {
             e.preventDefault();
             console.log('Purchase form submitted');
             this.handlePurchaseTokens();
+        });
+
+        // Add price calculation listener
+        document.addEventListener('input', (e) => {
+            if (e.target.id === 'purchaseAmount' || e.target.id === 'purchasePrice') {
+                this.updateTotalCost();
+            }
         });
     }
 
@@ -714,14 +732,14 @@ class BlockchainDemo {
         const supplier = document.getElementById('purchaseSupplier').value;
         const assetType = document.getElementById('purchaseTokenType').value;
         const quantity = document.getElementById('purchaseAmount').value;
+        const pricePerUnit = document.getElementById('purchasePrice').value;
         
-        console.log('Form values:', { supplier, assetType, quantity });
+        console.log('Form values:', { supplier, assetType, quantity, pricePerUnit });
         
-        // Calculate total cost based on market rates (demo pricing)
-        const rates = { tCHICKEN: 100000, tEGG: 5000 }; // IDR per unit
-        const totalCost = (parseFloat(quantity) * rates[assetType]).toString();
+        // Calculate total cost from user inputs
+        const totalCost = (parseFloat(quantity) * parseFloat(pricePerUnit)).toString();
 
-        if (!supplier || !assetType || !quantity) {
+        if (!supplier || !assetType || !quantity || !pricePerUnit) {
             this.showToast('Please fill all fields', 'error');
             return;
         }
@@ -770,18 +788,32 @@ class BlockchainDemo {
                 gas: Math.floor(gas * 1.2)
             });
 
-            // Get the order ID from the receipt - handle different event formats
+            // Get the order ID from the receipt - improved extraction
             let orderId = '0';
+            console.log('Transaction receipt:', receipt);
+            
             if (receipt.events && receipt.events.OrderCreated) {
                 orderId = receipt.events.OrderCreated.returnValues.orderId;
+                console.log('Order ID from events:', orderId);
             } else if (receipt.logs && receipt.logs.length > 0) {
-                // Parse logs manually if events aren't available
-                const orderCreatedLog = receipt.logs.find(log => 
-                    log.topics[0] === this.web3.utils.keccak256('OrderCreated(uint256,address,address)')
-                );
-                if (orderCreatedLog) {
-                    orderId = this.web3.utils.hexToNumber(orderCreatedLog.topics[1]);
+                // Parse logs manually - OrderCreated event signature
+                const eventSignature = this.web3.utils.keccak256('OrderCreated(uint256,address,address)');
+                console.log('Looking for event signature:', eventSignature);
+                
+                for (const log of receipt.logs) {
+                    console.log('Log topics:', log.topics);
+                    if (log.topics[0] === eventSignature) {
+                        // First topic after signature is the orderId
+                        orderId = this.web3.utils.hexToNumber(log.topics[1]);
+                        console.log('Order ID from logs:', orderId);
+                        break;
+                    }
                 }
+            }
+            
+            if (orderId === '0') {
+                console.error('Failed to extract order ID from receipt');
+                throw new Error('Failed to extract order ID');
             }
 
             // Step 3: Deposit payment

@@ -321,9 +321,19 @@
                                                placeholder="Quantity to purchase" min="1" required>
                                     </div>
                                     <div class="mb-3">
+                                        <input type="number" class="form-control" id="purchasePrice" 
+                                               placeholder="Price per unit (IDR)" min="1" required>
+                                    </div>
+                                    <div class="mb-3">
                                         <select class="form-select" id="purchaseSupplier" required>
                                             <option value="">Select Supplier</option>
                                         </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="p-2 bg-light rounded">
+                                            <small class="text-muted">Total Cost: </small>
+                                            <strong id="totalCostDisplay">0 IDR</strong>
+                                        </div>
                                     </div>
                                     <button type="submit" class="btn btn-success">
                                         <i class="fas fa-shopping-cart me-2"></i>Place Order
